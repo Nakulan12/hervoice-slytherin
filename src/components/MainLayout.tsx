@@ -5,18 +5,27 @@ import BottomNavigation from "./BottomNavigation";
 import SosButton from "./SosButton";
 import VoiceNavigation from "./VoiceNavigation";
 import { useTheme } from "@/context/ThemeContext";
+import { Sun, Moon } from "lucide-react";
 
 const MainLayout: React.FC = () => {
-  const { theme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   
   return (
     <div className="flex flex-col min-h-screen">
+      <div className="fixed top-4 left-4 z-50">
+        <button
+          onClick={toggleTheme}
+          className="p-2 rounded-full bg-secondary/80 backdrop-blur-sm shadow-md"
+          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
+      </div>
+      
       <main className="flex-grow pb-20">
         <Outlet />
       </main>
-      <div className="text-center text-xs text-muted-foreground py-2 fixed bottom-20 w-full">
-        Powered by Slytherin
-      </div>
+      
       <SosButton />
       <VoiceNavigation />
       <BottomNavigation />
