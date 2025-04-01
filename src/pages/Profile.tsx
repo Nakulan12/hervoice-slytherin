@@ -4,18 +4,22 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import { 
   Pencil, LogOut, Book, Award, 
-  Briefcase, Settings, Moon, Sun
+  Briefcase, Settings, Moon, Sun, 
+  Phone, Gamepad
 } from "lucide-react";
 import VoiceNavigation from "@/components/VoiceNavigation";
 import { useUser } from "@/context/UserContext";
+import { useTheme } from "@/context/ThemeContext";
 import { toast } from "@/components/ui/use-toast";
 
 const Profile = () => {
   const { user, logout, updateUserProfile } = useUser();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
-  const [darkMode, setDarkMode] = useState(false);
+  const isDarkMode = theme === 'dark';
 
   const handleLogout = () => {
     logout();
@@ -26,13 +30,25 @@ const Profile = () => {
     navigate("/login");
   };
 
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    // In a real app, this would update the theme
+  const handleThemeToggle = () => {
+    toggleTheme();
     toast({
-      title: `${!darkMode ? "Dark" : "Light"} mode activated`,
-      description: `The app theme has been changed to ${!darkMode ? "dark" : "light"} mode.`
+      title: `${!isDarkMode ? "Dark" : "Light"} mode activated`,
+      description: `The app theme has been changed to ${!isDarkMode ? "dark" : "light"} mode.`
     });
+  };
+
+  const handleCustomerSupport = () => {
+    toast({
+      title: "Customer Support",
+      description: "Connecting to customer support: 9842887813"
+    });
+    // In a real app, this would open the phone app
+    window.location.href = "tel:9842887813";
+  };
+
+  const navigateToGames = () => {
+    navigate("/games");
   };
 
   return (
@@ -76,10 +92,22 @@ const Profile = () => {
           <div className="flex justify-between items-center">
             <div>
               <p className="font-medium">App Theme</p>
-              <p className="text-sm text-muted-foreground">{darkMode ? "Dark" : "Light"} mode</p>
+              <p className="text-sm text-muted-foreground">{isDarkMode ? "Dark" : "Light"} mode</p>
             </div>
-            <Button variant="ghost" size="icon" onClick={toggleDarkMode}>
-              {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+            <Switch 
+              checked={isDarkMode}
+              onCheckedChange={handleThemeToggle}
+              className="ml-2"
+            />
+          </div>
+          
+          <div className="flex justify-between items-center">
+            <div>
+              <p className="font-medium">Customer Support</p>
+              <p className="text-sm text-muted-foreground">9842887813</p>
+            </div>
+            <Button variant="ghost" size="icon" onClick={handleCustomerSupport}>
+              <Phone size={18} />
             </Button>
           </div>
         </div>
@@ -107,9 +135,23 @@ const Profile = () => {
         </div>
       </Card>
       
-      <h2 className="text-xl font-semibold mb-4">Career Resources</h2>
+      <h2 className="text-xl font-semibold mb-4">Learning Resources</h2>
       
       <Card className="mb-8">
+        <Button variant="ghost" className="w-full justify-start p-4 h-auto" onClick={navigateToGames}>
+          <div className="flex items-center gap-3">
+            <div className="bg-secondary/50 rounded-full p-2">
+              <Gamepad size={20} className="text-primary" />
+            </div>
+            <div className="text-left">
+              <p className="font-medium">Interactive Games & Quizzes</p>
+              <p className="text-sm text-muted-foreground">Learn while having fun</p>
+            </div>
+          </div>
+        </Button>
+        
+        <Separator />
+        
         <Button variant="ghost" className="w-full justify-start p-4 h-auto">
           <div className="flex items-center gap-3">
             <div className="bg-secondary/50 rounded-full p-2">
@@ -143,7 +185,7 @@ const Profile = () => {
       </Button>
       
       <p className="text-center text-xs text-muted-foreground mt-8">
-        HerVoice v1.0 - Digital Literacy & Skill Empowerment Platform
+        HerVoice v1.0 - Powered by Slytherin
       </p>
     </div>
   );
