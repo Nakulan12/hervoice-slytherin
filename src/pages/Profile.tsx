@@ -7,8 +7,8 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { 
   Pencil, LogOut, Book, Award, 
-  Briefcase, Settings, Moon, Sun, 
-  Phone, Gamepad
+  Briefcase, Settings, Moon, 
+  Gamepad
 } from "lucide-react";
 import VoiceNavigation from "@/components/VoiceNavigation";
 import { useUser } from "@/context/UserContext";
@@ -36,15 +36,6 @@ const Profile = () => {
       title: `${!isDarkMode ? "Dark" : "Light"} mode activated`,
       description: `The app theme has been changed to ${!isDarkMode ? "dark" : "light"} mode.`
     });
-  };
-
-  const handleCustomerSupport = () => {
-    toast({
-      title: "Customer Support",
-      description: "Connecting to customer support: 9842887813"
-    });
-    // In a real app, this would open the phone app
-    window.location.href = "tel:9842887813";
   };
 
   const navigateToGames = () => {
@@ -99,16 +90,6 @@ const Profile = () => {
               onCheckedChange={handleThemeToggle}
               className="ml-2"
             />
-          </div>
-          
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="font-medium">Customer Support</p>
-              <p className="text-sm text-muted-foreground">9842887813</p>
-            </div>
-            <Button variant="ghost" size="icon" onClick={handleCustomerSupport}>
-              <Phone size={18} />
-            </Button>
           </div>
         </div>
       </Card>
@@ -192,3 +173,4 @@ const Profile = () => {
 };
 
 export default Profile;
+
