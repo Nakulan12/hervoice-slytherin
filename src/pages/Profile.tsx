@@ -14,12 +14,25 @@ import VoiceNavigation from "@/components/VoiceNavigation";
 import { useUser } from "@/context/UserContext";
 import { useTheme } from "@/context/ThemeContext";
 import { toast } from "@/components/ui/use-toast";
+import { Progress } from "@/components/ui/progress";
 
 const Profile = () => {
   const { user, logout, updateUserProfile } = useUser();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const isDarkMode = theme === 'dark';
+  
+  // Calculate overall progress
+  const courseProgresses = user?.progress ? Object.values(user.progress) : [];
+  const averageProgress = courseProgresses.length > 0 
+    ? Math.round(courseProgresses.reduce((sum, val) => sum + val, 0) / courseProgresses.length) 
+    : 0;
+  
+  // Calculate completed courses count
+  const completedCoursesCount = user?.completedCourses?.length || 0;
+  
+  // Calculate achievements (simplified version)
+  const achievementsCount = completedCoursesCount > 0 ? completedCoursesCount + 1 : 1;
 
   const handleLogout = () => {
     logout();
@@ -102,7 +115,7 @@ const Profile = () => {
             <div className="bg-secondary/50 rounded-full h-12 w-12 flex items-center justify-center mx-auto mb-2">
               <Book size={24} className="text-primary" />
             </div>
-            <p className="text-2xl font-semibold">1</p>
+            <p className="text-2xl font-semibold">{Object.keys(user?.progress || {}).length}</p>
             <p className="text-sm text-muted-foreground">Courses in Progress</p>
           </div>
           
@@ -110,10 +123,18 @@ const Profile = () => {
             <div className="bg-secondary/50 rounded-full h-12 w-12 flex items-center justify-center mx-auto mb-2">
               <Award size={24} className="text-primary" />
             </div>
-            <p className="text-2xl font-semibold">2</p>
+            <p className="text-2xl font-semibold">{achievementsCount}</p>
             <p className="text-sm text-muted-foreground">Achievements</p>
           </div>
         </div>
+        
+        {Object.keys(user?.progress || {}).length > 0 && (
+          <div className="mt-4 px-2">
+            <p className="text-sm font-medium mb-2">Overall Progress</p>
+            <Progress value={averageProgress} className="h-2" />
+            <p className="text-xs text-muted-foreground mt-1 text-right">{averageProgress}% Complete</p>
+          </div>
+        )}
       </Card>
       
       <h2 className="text-xl font-semibold mb-4">Learning Resources</h2>
@@ -166,11 +187,11 @@ const Profile = () => {
       </Button>
       
       <p className="text-center text-xs text-muted-foreground mt-8">
-        HerVoice v1.0 - Powered by Slytherin
+        HerVoice v1.0 - Powered by Slytherin<br/>
+        <span className="text-primary">Women Safety Helpline: 1800-1090</span>
       </p>
     </div>
   );
 };
 
 export default Profile;
-

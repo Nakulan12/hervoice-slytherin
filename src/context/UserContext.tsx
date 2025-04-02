@@ -9,6 +9,8 @@ interface User {
   completedCourses: string[];
   progress: Record<string, number>;
   profileImage?: string;
+  isNewUser?: boolean;
+  lastLogin?: Date;
 }
 
 interface UserContextType {
@@ -19,6 +21,7 @@ interface UserContextType {
   register: (name: string, email: string, password: string, language: string) => Promise<void>;
   logout: () => void;
   updateUserProfile: (updates: Partial<User>) => void;
+  updateCourseProgress: (courseId: string, progress: number) => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -31,6 +34,9 @@ export const useUser = () => {
   return context;
 };
 
+// Simulated database of users
+const mockUserDatabase: Record<string, User> = {};
+
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -39,7 +45,17 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const storedUser = localStorage.getItem("hervoice_user");
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      const parsedUser = JSON.parse(storedUser);
+      // Update last login time
+      const updatedUser = { 
+        ...parsedUser, 
+        lastLogin: new Date() 
+      };
+      setUser(updatedUser);
+      localStorage.setItem("hervoice_user", JSON.stringify(updatedUser));
+      
+      // Sync with our mock database
+      mockUserDatabase[updatedUser.id] = updatedUser;
     }
     setIsLoading(false);
   }, []);
@@ -47,19 +63,37 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // Mock login - in a real app, this would call an API
-      const mockUser: User = {
-        id: "user123",
-        name: "Jane",
-        email: email,
-        preferredLanguage: "English",
-        completedCourses: [],
-        progress: {},
-        profileImage: "https://i.pravatar.cc/150?img=44"
-      };
+      // Check if user exists in our mock database by email
+      const existingUserID = Object.keys(mockUserDatabase).find(
+        id => mockUserDatabase[id].email === email
+      );
+
+      let currentUser: User;
       
-      localStorage.setItem("hervoice_user", JSON.stringify(mockUser));
-      setUser(mockUser);
+      if (existingUserID) {
+        // User exists, update last login
+        currentUser = {
+          ...mockUserDatabase[existingUserID],
+          lastLogin: new Date()
+        };
+      } else {
+        // Mock login for demo - in a real app, this would validate credentials against a backend
+        currentUser = {
+          id: `user${Date.now()}`,
+          name: email.split('@')[0],
+          email: email,
+          preferredLanguage: "English",
+          completedCourses: [],
+          progress: {},
+          lastLogin: new Date(),
+          isNewUser: true
+        };
+      }
+      
+      // Update mock database
+      mockUserDatabase[currentUser.id] = currentUser;
+      localStorage.setItem("hervoice_user", JSON.stringify(currentUser));
+      setUser(currentUser);
     } catch (error) {
       console.error("Login failed:", error);
       throw error;
@@ -71,7 +105,13 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (name: string, email: string, password: string, language: string) => {
     setIsLoading(true);
     try {
-      // Mock registration - in a real app, this would call an API
+      // Check if email already exists
+      const emailExists = Object.values(mockUserDatabase).some(u => u.email === email);
+      if (emailExists) {
+        throw new Error("Email already in use");
+      }
+
+      // Create new user
       const newUser: User = {
         id: `user${Date.now()}`,
         name,
@@ -79,9 +119,12 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         preferredLanguage: language,
         completedCourses: [],
         progress: {},
-        profileImage: "https://i.pravatar.cc/150?img=44"
+        lastLogin: new Date(),
+        isNewUser: true
       };
       
+      // Update mock database
+      mockUserDatabase[newUser.id] = newUser;
       localStorage.setItem("hervoice_user", JSON.stringify(newUser));
       setUser(newUser);
     } catch (error) {
@@ -101,6 +144,33 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user) return;
     
     const updatedUser = { ...user, ...updates };
+    
+    // Remove the isNewUser flag if it exists
+    if (updatedUser.isNewUser) {
+      updatedUser.isNewUser = false;
+    }
+    
+    // Update mock database
+    mockUserDatabase[updatedUser.id] = updatedUser;
+    localStorage.setItem("hervoice_user", JSON.stringify(updatedUser));
+    setUser(updatedUser);
+  };
+
+  const updateCourseProgress = (courseId: string, progress: number) => {
+    if (!user) return;
+    
+    const updatedProgress = { ...user.progress, [courseId]: progress };
+    
+    // Update user with new progress
+    const updatedUser = { 
+      ...user, 
+      progress: updatedProgress,
+      // Remove isNewUser flag after course progress is made
+      isNewUser: false
+    };
+    
+    // Update mock database
+    mockUserDatabase[updatedUser.id] = updatedUser;
     localStorage.setItem("hervoice_user", JSON.stringify(updatedUser));
     setUser(updatedUser);
   };
@@ -114,7 +184,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         login,
         register,
         logout,
-        updateUserProfile
+        updateUserProfile,
+        updateCourseProgress
       }}
     >
       {children}

@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Download, CheckCircle } from "lucide-react";
+import { ArrowLeft, Download, CheckCircle, Clock, BookOpen, Users } from "lucide-react";
 import VoiceNavigation from "@/components/VoiceNavigation";
 import { coursesData, Course } from "@/data/coursesData";
 import { useUser } from "@/context/UserContext";
@@ -13,19 +13,43 @@ import { toast } from "@/components/ui/use-toast";
 const CourseDetails = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { user, updateCourseProgress } = useUser();
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isEnrolled, setIsEnrolled] = useState(false);
   
   useEffect(() => {
-    // Find the course based on courseId
-    const foundCourse = coursesData.find(c => c.id === courseId);
+    // Simulate database fetch with delay
+    const fetchCourse = async () => {
+      setLoading(true);
+      try {
+        // Simulate network delay for realism
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        const foundCourse = coursesData.find(c => c.id === courseId);
+        
+        if (foundCourse) {
+          setCourse(foundCourse);
+          
+          // Check if user has progress for this course
+          if (user?.progress && user.progress[courseId as string] !== undefined) {
+            setIsEnrolled(true);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching course:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load course details. Please try again.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
     
-    if (foundCourse) {
-      setCourse(foundCourse);
-    }
-    setLoading(false);
-  }, [courseId]);
+    fetchCourse();
+  }, [courseId, user]);
 
   const handleDownload = () => {
     toast({
@@ -35,9 +59,35 @@ const CourseDetails = () => {
   };
 
   const handleEnrollment = () => {
+    if (!user) {
+      toast({
+        title: "Login Required",
+        description: "Please login to enroll in this course.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Initialize progress for this course at 0%
+    if (!isEnrolled) {
+      updateCourseProgress(courseId as string, 0);
+      setIsEnrolled(true);
+    }
+    
+    // Simulate starting or continuing the course
+    let currentProgress = user?.progress?.[courseId as string] || 0;
+    
+    // For demo purposes, advance progress by 10% when continuing
+    if (currentProgress < 100) {
+      currentProgress = Math.min(currentProgress + 10, 100);
+      updateCourseProgress(courseId as string, currentProgress);
+    }
+    
     toast({
-      title: "Enrollment Successful",
-      description: "You are now enrolled in this course.",
+      title: isEnrolled ? "Continue Learning" : "Enrollment Successful",
+      description: isEnrolled 
+        ? "Resuming your progress in this course."
+        : "You are now enrolled in this course.",
     });
   };
 
@@ -61,6 +111,9 @@ const CourseDetails = () => {
     );
   }
 
+  // Calculate current progress for this course
+  const courseProgress = user?.progress?.[courseId as string] || 0;
+
   return (
     <div className="container px-4 py-6">
       <VoiceNavigation />
@@ -81,17 +134,26 @@ const CourseDetails = () => {
       </div>
       
       <div className="grid gap-6 grid-cols-1 md:grid-cols-3 mb-8">
-        <div className="bg-muted/30 p-4 rounded-lg text-center">
-          <p className="text-sm text-muted-foreground">Level</p>
-          <p className="font-medium">{course.level}</p>
+        <div className="bg-muted/30 p-4 rounded-lg flex items-center gap-3">
+          <BookOpen className="text-primary" size={24} />
+          <div>
+            <p className="text-sm text-muted-foreground">Level</p>
+            <p className="font-medium">{course.level}</p>
+          </div>
         </div>
-        <div className="bg-muted/30 p-4 rounded-lg text-center">
-          <p className="text-sm text-muted-foreground">Duration</p>
-          <p className="font-medium">{course.duration}</p>
+        <div className="bg-muted/30 p-4 rounded-lg flex items-center gap-3">
+          <Clock className="text-primary" size={24} />
+          <div>
+            <p className="text-sm text-muted-foreground">Duration</p>
+            <p className="font-medium">{course.duration}</p>
+          </div>
         </div>
-        <div className="bg-muted/30 p-4 rounded-lg text-center">
-          <p className="text-sm text-muted-foreground">Category</p>
-          <p className="font-medium">{course.category}</p>
+        <div className="bg-muted/30 p-4 rounded-lg flex items-center gap-3">
+          <Users className="text-primary" size={24} />
+          <div>
+            <p className="text-sm text-muted-foreground">Category</p>
+            <p className="font-medium">{course.category}</p>
+          </div>
         </div>
       </div>
       
@@ -126,9 +188,21 @@ const CourseDetails = () => {
                     </div>
                   )}
                   {module.quizzes && module.quizzes.length > 0 && (
-                    <div className="flex items-center gap-2 text-sm text-primary">
-                      <CheckCircle size={16} />
-                      <span>Quiz Available</span>
+                    <div>
+                      <div className="flex items-center gap-2 mb-2 text-sm text-primary">
+                        <CheckCircle size={16} />
+                        <span>Quiz Available</span>
+                      </div>
+                      <div className="mt-4 p-4 bg-muted/30 rounded-md">
+                        <h4 className="font-medium mb-3">Sample Question:</h4>
+                        <p className="mb-2">{module.quizzes[0].question}</p>
+                        <ul className="list-disc pl-5 space-y-1 text-sm">
+                          {module.quizzes[0].options.map((option, i) => (
+                            <li key={i} className="text-muted-foreground">{option}</li>
+                          ))}
+                        </ul>
+                        <p className="mt-2 text-xs text-muted-foreground">Answer these questions to test your knowledge</p>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -138,15 +212,17 @@ const CourseDetails = () => {
         </Accordion>
       </div>
       
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-4">Your Progress</h2>
-        <Progress value={33} className="mb-2" />
-        <p className="text-sm text-muted-foreground">33% complete</p>
-      </div>
+      {isEnrolled && (
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold mb-4">Your Progress</h2>
+          <Progress value={courseProgress} className="mb-2" />
+          <p className="text-sm text-muted-foreground">{courseProgress}% complete</p>
+        </div>
+      )}
       
       <div className="flex flex-col gap-4 sm:flex-row">
         <Button className="flex-1" onClick={handleEnrollment}>
-          Continue Learning
+          {isEnrolled ? "Continue Learning" : "Enroll Now"}
         </Button>
         <Button variant="outline" className="flex-1 gap-2" onClick={handleDownload}>
           <Download size={18} />
