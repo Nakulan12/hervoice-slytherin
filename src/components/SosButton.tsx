@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Bell, Phone, X } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
@@ -8,10 +7,10 @@ const SosButton = () => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const handleEmergency = () => {
-    // In a real app, this would trigger an emergency call or SMS
+    // Use a women's safety helpline number instead
     toast({
-      title: "Emergency Contact",
-      description: "Connecting to emergency helpline: 9842887813",
+      title: "Women's Safety Helpline",
+      description: "Connecting to Women's Safety Helpline: 1800-1090",
       variant: "destructive",
     });
   };
