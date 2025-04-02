@@ -4,19 +4,21 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Download, CheckCircle, Clock, BookOpen, Users } from "lucide-react";
+import { ArrowLeft, Download, CheckCircle, Clock, BookOpen, Users, Award, Video } from "lucide-react";
 import VoiceNavigation from "@/components/VoiceNavigation";
 import { coursesData, Course } from "@/data/coursesData";
 import { useUser } from "@/context/UserContext";
 import { toast } from "@/components/ui/use-toast";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const CourseDetails = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
-  const { user, updateCourseProgress } = useUser();
+  const { user, updateCourseProgress, updateUserProfile } = useUser();
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEnrolled, setIsEnrolled] = useState(false);
+  const [selectedModuleId, setSelectedModuleId] = useState<string | null>(null);
   
   useEffect(() => {
     // Simulate database fetch with delay
@@ -34,6 +36,11 @@ const CourseDetails = () => {
           // Check if user has progress for this course
           if (user?.progress && user.progress[courseId as string] !== undefined) {
             setIsEnrolled(true);
+            
+            // Set the first module as selected by default
+            if (foundCourse.modules.length > 0) {
+              setSelectedModuleId(foundCourse.modules[0].id);
+            }
           }
         }
       } catch (error) {
@@ -58,6 +65,20 @@ const CourseDetails = () => {
     });
   };
 
+  const handleModuleSelect = (moduleId: string) => {
+    setSelectedModuleId(moduleId);
+    
+    // Update progress when user engages with module content
+    if (isEnrolled && user) {
+      // Calculate progress based on modules engaged
+      const totalModules = course?.modules.length || 1;
+      const moduleIndex = course?.modules.findIndex(m => m.id === moduleId) || 0;
+      const newProgress = Math.min(Math.round(((moduleIndex + 1) / totalModules) * 100), 100);
+      
+      updateCourseProgress(courseId as string, newProgress);
+    }
+  };
+
   const handleEnrollment = () => {
     if (!user) {
       toast({
@@ -71,24 +92,36 @@ const CourseDetails = () => {
     // Initialize progress for this course at 0%
     if (!isEnrolled) {
       updateCourseProgress(courseId as string, 0);
+      
+      // Add course to user's enrolled courses
+      if (user.completedCourses) {
+        updateUserProfile({
+          completedCourses: [...user.completedCourses, courseId as string]
+        });
+      } else {
+        updateUserProfile({
+          completedCourses: [courseId as string]
+        });
+      }
+      
       setIsEnrolled(true);
+      
+      // Set first module as selected after enrollment
+      if (course?.modules.length) {
+        setSelectedModuleId(course.modules[0].id);
+      }
+      
+      toast({
+        title: "Enrollment Successful",
+        description: "You've successfully enrolled in this course!",
+      });
+    } else {
+      // Continue learning - navigate to last accessed module
+      toast({
+        title: "Continue Learning",
+        description: "Resuming your progress in this course.",
+      });
     }
-    
-    // Simulate starting or continuing the course
-    let currentProgress = user?.progress?.[courseId as string] || 0;
-    
-    // For demo purposes, advance progress by 10% when continuing
-    if (currentProgress < 100) {
-      currentProgress = Math.min(currentProgress + 10, 100);
-      updateCourseProgress(courseId as string, currentProgress);
-    }
-    
-    toast({
-      title: isEnrolled ? "Continue Learning" : "Enrollment Successful",
-      description: isEnrolled 
-        ? "Resuming your progress in this course."
-        : "You are now enrolled in this course.",
-    });
   };
 
   if (loading) {
@@ -111,8 +144,11 @@ const CourseDetails = () => {
     );
   }
 
-  // Calculate current progress for this course
+  // Calculate current progress for this course from user data
   const courseProgress = user?.progress?.[courseId as string] || 0;
+  
+  // Selected module
+  const selectedModule = course.modules.find(m => m.id === selectedModuleId);
 
   return (
     <div className="container px-4 py-6">
@@ -160,70 +196,178 @@ const CourseDetails = () => {
       <div className="mb-8">
         <h2 className="text-xl font-semibold mb-2">About This Course</h2>
         <p className="text-muted-foreground">{course.description}</p>
+        
+        <div className="mt-4 grid gap-3 grid-cols-1 md:grid-cols-2">
+          <div className="flex items-center gap-2 text-sm">
+            <CheckCircle size={16} className="text-green-500" />
+            <span>Self-paced learning</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm">
+            <CheckCircle size={16} className="text-green-500" />
+            <span>Interactive quizzes</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm">
+            <CheckCircle size={16} className="text-green-500" />
+            <span>Video tutorials</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm">
+            <CheckCircle size={16} className="text-green-500" />
+            <span>Certificate of completion</span>
+          </div>
+        </div>
       </div>
       
       <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-4">Course Content</h2>
-        <Accordion type="single" collapsible className="mb-4">
-          {course.modules.map((module, index) => (
-            <AccordionItem key={module.id} value={module.id}>
-              <AccordionTrigger className="hover:bg-muted/30 px-4 py-2">
-                <div className="flex items-center gap-3 w-full">
-                  <div className="bg-primary/20 h-8 w-8 rounded-full flex items-center justify-center">
-                    <span className="font-medium">{index + 1}</span>
-                  </div>
-                  <div className="text-left">
-                    <p className="font-medium">{module.title}</p>
-                    <p className="text-xs text-muted-foreground">{module.description}</p>
-                  </div>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-4">
-                <div className="pl-11">
-                  <p className="text-muted-foreground mb-4">{module.content}</p>
-                  {module.videoUrl && (
-                    <div className="flex items-center gap-2 mb-2 text-sm text-primary">
-                      <CheckCircle size={16} />
-                      <span>Video Tutorial Available</span>
+        <h2 className="text-xl font-semibold mb-4">Learning Outcomes</h2>
+        <ul className="space-y-2">
+          <li className="flex items-start gap-2">
+            <Award size={18} className="text-primary mt-0.5" />
+            <span>Understand key concepts in {course.category}</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <Award size={18} className="text-primary mt-0.5" />
+            <span>Develop practical skills for everyday technology use</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <Award size={18} className="text-primary mt-0.5" />
+            <span>Build confidence in using digital tools</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <Award size={18} className="text-primary mt-0.5" />
+            <span>Apply learned techniques to real-world scenarios</span>
+          </li>
+        </ul>
+      </div>
+      
+      <div className="mb-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-1">
+          <h2 className="text-xl font-semibold mb-4">Course Content</h2>
+          <Accordion 
+            type="single" 
+            collapsible 
+            className="mb-4"
+            value={selectedModuleId || undefined}
+            onValueChange={(value) => value && handleModuleSelect(value)}
+          >
+            {course.modules.map((module, index) => (
+              <AccordionItem key={module.id} value={module.id}>
+                <AccordionTrigger className="hover:bg-muted/30 px-4 py-2">
+                  <div className="flex items-center gap-3 w-full">
+                    <div className={`h-8 w-8 rounded-full flex items-center justify-center ${isEnrolled && user?.progress?.[courseId as string] >= ((index + 1) / course.modules.length * 100) ? 'bg-primary text-primary-foreground' : 'bg-primary/20'}`}>
+                      <span className="font-medium">{index + 1}</span>
                     </div>
-                  )}
-                  {module.quizzes && module.quizzes.length > 0 && (
-                    <div>
+                    <div className="text-left">
+                      <p className="font-medium">{module.title}</p>
+                      <p className="text-xs text-muted-foreground">{module.description}</p>
+                    </div>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="pl-11 text-muted-foreground text-sm">
+                    {module.videoUrl && (
                       <div className="flex items-center gap-2 mb-2 text-sm text-primary">
-                        <CheckCircle size={16} />
-                        <span>Quiz Available</span>
+                        <Video size={16} />
+                        <span>Video Tutorial Available</span>
                       </div>
-                      <div className="mt-4 p-4 bg-muted/30 rounded-md">
-                        <h4 className="font-medium mb-3">Sample Question:</h4>
-                        <p className="mb-2">{module.quizzes[0].question}</p>
-                        <ul className="list-disc pl-5 space-y-1 text-sm">
-                          {module.quizzes[0].options.map((option, i) => (
-                            <li key={i} className="text-muted-foreground">{option}</li>
-                          ))}
-                        </ul>
-                        <p className="mt-2 text-xs text-muted-foreground">Answer these questions to test your knowledge</p>
+                    )}
+                    {module.quizzes && module.quizzes.length > 0 && (
+                      <div className="flex items-center gap-2 mb-4 text-sm text-primary">
+                        <CheckCircle size={16} />
+                        <span>{module.quizzes.length} Quiz{module.quizzes.length > 1 ? "zes" : ""} Available</span>
+                      </div>
+                    )}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
+        
+        <div className="lg:col-span-2">
+          {selectedModule && isEnrolled ? (
+            <div className="bg-muted/30 rounded-lg p-6">
+              <h3 className="text-xl font-semibold mb-4">{selectedModule.title}</h3>
+              <p className="mb-6">{selectedModule.content}</p>
+              
+              {selectedModule.videoUrl && (
+                <div className="mb-6">
+                  <h4 className="font-medium mb-2">Video Tutorial</h4>
+                  <div className="aspect-video bg-black/10 rounded-lg flex items-center justify-center">
+                    <Video className="text-muted-foreground" size={48} />
+                    <span className="sr-only">Video player placeholder</span>
+                  </div>
+                </div>
+              )}
+              
+              {selectedModule.quizzes && selectedModule.quizzes.length > 0 && (
+                <div>
+                  <h4 className="font-medium mb-4">Knowledge Check</h4>
+                  {selectedModule.quizzes.map((quiz, index) => (
+                    <div key={index} className="mb-6 p-4 bg-card shadow-sm rounded-md">
+                      <p className="font-medium mb-2">Question {index + 1}: {quiz.question}</p>
+                      <div className="space-y-2">
+                        {quiz.options.map((option, optionIndex) => (
+                          <div key={optionIndex} className="flex items-center gap-2 p-2 hover:bg-accent rounded-md cursor-pointer">
+                            <div className="h-5 w-5 rounded-full border border-primary flex-shrink-0"></div>
+                            <span>{option}</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  )}
+                  ))}
+                  <Button className="w-full">Submit Answers</Button>
                 </div>
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
+              )}
+            </div>
+          ) : (
+            <div className="h-full flex flex-col items-center justify-center p-8 bg-muted/30 rounded-lg">
+              <h3 className="text-xl font-medium mb-4 text-center">{isEnrolled ? "Select a module to begin" : "Enroll to access course content"}</h3>
+              <p className="text-muted-foreground text-center mb-6">
+                {isEnrolled 
+                  ? "Click on a module from the left sidebar to view its content" 
+                  : "This course has comprehensive materials to help you learn at your own pace"}
+              </p>
+              {!isEnrolled && (
+                <Button onClick={handleEnrollment}>Enroll Now</Button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
       
       {isEnrolled && (
         <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Your Progress</h2>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-xl font-semibold">Your Progress</h2>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm">Get Certificate</Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80">
+                <div className="space-y-2">
+                  <h4 className="font-medium">Course Certificate</h4>
+                  <p className="text-sm text-muted-foreground">Complete 100% of the course to receive your certificate.</p>
+                  <Progress value={courseProgress} className="mb-1" />
+                  <p className="text-xs text-muted-foreground">{courseProgress}% complete</p>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
           <Progress value={courseProgress} className="mb-2" />
-          <p className="text-sm text-muted-foreground">{courseProgress}% complete</p>
+          <p className="text-sm text-muted-foreground">{courseProgress}% complete - {courseProgress < 100 ? `${100 - courseProgress}% remaining` : "Course completed"}</p>
         </div>
       )}
       
       <div className="flex flex-col gap-4 sm:flex-row">
-        <Button className="flex-1" onClick={handleEnrollment}>
-          {isEnrolled ? "Continue Learning" : "Enroll Now"}
-        </Button>
+        {!isEnrolled ? (
+          <Button className="flex-1" onClick={handleEnrollment}>
+            Enroll Now
+          </Button>
+        ) : (
+          <Button className="flex-1" onClick={() => selectedModule ? null : setSelectedModuleId(course.modules[0]?.id)}>
+            Continue Learning
+          </Button>
+        )}
         <Button variant="outline" className="flex-1 gap-2" onClick={handleDownload}>
           <Download size={18} />
           Download for Offline

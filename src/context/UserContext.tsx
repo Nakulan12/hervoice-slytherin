@@ -11,6 +11,8 @@ interface User {
   profileImage?: string;
   isNewUser?: boolean;
   lastLogin?: Date;
+  enrollmentDates?: Record<string, Date>;
+  certificates?: string[];
 }
 
 interface UserContextType {
@@ -22,6 +24,7 @@ interface UserContextType {
   logout: () => void;
   updateUserProfile: (updates: Partial<User>) => void;
   updateCourseProgress: (courseId: string, progress: number) => void;
+  getUserProgressForCourse: (courseId: string) => number;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -37,12 +40,40 @@ export const useUser = () => {
 // Simulated database of users
 const mockUserDatabase: Record<string, User> = {};
 
+// Load initial data from localStorage
+const loadInitialData = () => {
+  try {
+    const savedUsers = localStorage.getItem("hervoice_users");
+    if (savedUsers) {
+      const parsedUsers = JSON.parse(savedUsers);
+      Object.keys(parsedUsers).forEach(key => {
+        mockUserDatabase[key] = parsedUsers[key];
+      });
+    }
+    console.log("Loaded user database:", mockUserDatabase);
+  } catch (error) {
+    console.error("Error loading user data:", error);
+  }
+};
+
+// Save database to localStorage
+const saveDatabase = () => {
+  try {
+    localStorage.setItem("hervoice_users", JSON.stringify(mockUserDatabase));
+  } catch (error) {
+    console.error("Error saving user data:", error);
+  }
+};
+
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Check for stored user on initial load
+  // Load initial data
   useEffect(() => {
+    loadInitialData();
+    
+    // Check for stored user on initial load
     const storedUser = localStorage.getItem("hervoice_user");
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
@@ -52,10 +83,10 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         lastLogin: new Date() 
       };
       setUser(updatedUser);
-      localStorage.setItem("hervoice_user", JSON.stringify(updatedUser));
       
-      // Sync with our mock database
+      // Update mock database
       mockUserDatabase[updatedUser.id] = updatedUser;
+      saveDatabase();
     }
     setIsLoading(false);
   }, []);
@@ -86,12 +117,16 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
           completedCourses: [],
           progress: {},
           lastLogin: new Date(),
-          isNewUser: true
+          isNewUser: true,
+          enrollmentDates: {},
+          certificates: []
         };
       }
       
       // Update mock database
       mockUserDatabase[currentUser.id] = currentUser;
+      saveDatabase();
+      
       localStorage.setItem("hervoice_user", JSON.stringify(currentUser));
       setUser(currentUser);
     } catch (error) {
@@ -120,11 +155,15 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         completedCourses: [],
         progress: {},
         lastLogin: new Date(),
-        isNewUser: true
+        isNewUser: true,
+        enrollmentDates: {},
+        certificates: []
       };
       
       // Update mock database
       mockUserDatabase[newUser.id] = newUser;
+      saveDatabase();
+      
       localStorage.setItem("hervoice_user", JSON.stringify(newUser));
       setUser(newUser);
     } catch (error) {
@@ -152,6 +191,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // Update mock database
     mockUserDatabase[updatedUser.id] = updatedUser;
+    saveDatabase();
+    
     localStorage.setItem("hervoice_user", JSON.stringify(updatedUser));
     setUser(updatedUser);
   };
@@ -159,20 +200,41 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateCourseProgress = (courseId: string, progress: number) => {
     if (!user) return;
     
+    // Track enrollment date if this is the first time
+    const updatedEnrollmentDates = { ...user.enrollmentDates };
+    if (!updatedEnrollmentDates[courseId]) {
+      updatedEnrollmentDates[courseId] = new Date();
+    }
+    
     const updatedProgress = { ...user.progress, [courseId]: progress };
+    
+    // Update certificates if course is completed
+    const updatedCertificates = [...(user.certificates || [])];
+    if (progress === 100 && !updatedCertificates.includes(courseId)) {
+      updatedCertificates.push(courseId);
+    }
     
     // Update user with new progress
     const updatedUser = { 
       ...user, 
       progress: updatedProgress,
+      enrollmentDates: updatedEnrollmentDates,
+      certificates: updatedCertificates,
       // Remove isNewUser flag after course progress is made
       isNewUser: false
     };
     
     // Update mock database
     mockUserDatabase[updatedUser.id] = updatedUser;
+    saveDatabase();
+    
     localStorage.setItem("hervoice_user", JSON.stringify(updatedUser));
     setUser(updatedUser);
+  };
+
+  const getUserProgressForCourse = (courseId: string): number => {
+    if (!user || !user.progress) return 0;
+    return user.progress[courseId] || 0;
   };
 
   return (
@@ -185,7 +247,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         register,
         logout,
         updateUserProfile,
-        updateCourseProgress
+        updateCourseProgress,
+        getUserProgressForCourse
       }}
     >
       {children}
