@@ -5,16 +5,47 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useUser } from "@/context/UserContext";
 import { toast } from "@/components/ui/use-toast";
+import { Shield } from "lucide-react";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<{email?: string, password?: string}>({});
   const { login } = useUser();
   const navigate = useNavigate();
 
+  const validateForm = () => {
+    const newErrors: {email?: string, password?: string} = {};
+    let isValid = true;
+    
+    if (!email) {
+      newErrors.email = "Email is required";
+      isValid = false;
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = "Email is invalid";
+      isValid = false;
+    }
+    
+    if (!password) {
+      newErrors.password = "Password is required";
+      isValid = false;
+    } else if (password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+      isValid = false;
+    }
+    
+    setErrors(newErrors);
+    return isValid;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     setLoading(true);
     
     try {
@@ -58,8 +89,11 @@ const Login = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
                 required
-                className="w-full"
+                className={`w-full ${errors.email ? "border-destructive" : ""}`}
               />
+              {errors.email && (
+                <p className="text-destructive text-sm">{errors.email}</p>
+              )}
             </div>
             
             <div className="space-y-2">
@@ -73,8 +107,11 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
                 required
-                className="w-full"
+                className={`w-full ${errors.password ? "border-destructive" : ""}`}
               />
+              {errors.password && (
+                <p className="text-destructive text-sm">{errors.password}</p>
+              )}
             </div>
             
             <div className="text-right">
@@ -100,8 +137,12 @@ const Login = () => {
           </div>
         </div>
         
-        <div className="mt-8 text-center text-xs text-muted-foreground">
-          <p>For support, contact: 9842887813</p>
+        <div className="mt-8 flex justify-center items-center gap-2 p-3 bg-secondary/50 rounded-lg">
+          <Shield size={18} className="text-primary" />
+          <div className="text-sm">
+            <p className="font-medium">Women's Safety Helpline</p>
+            <p className="text-primary font-bold">1800-1090</p>
+          </div>
         </div>
       </div>
     </div>
