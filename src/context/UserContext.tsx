@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from "react";
 
 interface User {
@@ -233,16 +232,16 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log(`Updating progress for course ${courseId} to ${progress}%`);
     
     // Track enrollment date if this is the first time
-    const updatedEnrollmentDates = { ...user.enrollmentDates } || {};
+    const updatedEnrollmentDates = { ...(user.enrollmentDates || {}) };
     if (!updatedEnrollmentDates[courseId]) {
       updatedEnrollmentDates[courseId] = new Date();
     }
     
     const updatedProgress = { ...user.progress, [courseId]: progress };
     
-    // Update completedCourses if not already there
+    // Update completedCourses if not already there and if progress is 100%
     let updatedCompletedCourses = [...(user.completedCourses || [])];
-    if (!updatedCompletedCourses.includes(courseId)) {
+    if (progress === 100 && !updatedCompletedCourses.includes(courseId)) {
       updatedCompletedCourses.push(courseId);
     }
     
@@ -259,8 +258,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       enrollmentDates: updatedEnrollmentDates,
       completedCourses: updatedCompletedCourses,
       certificates: updatedCertificates,
-      // Remove isNewUser flag after course progress is made
-      isNewUser: false
+      isNewUser: false  // Remove isNewUser flag after course progress is made
     };
     
     // Update mock database
@@ -275,9 +273,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const getUserProgressForCourse = (courseId: string): number => {
     if (!user || !user.progress) return 0;
-    const progress = user.progress[courseId] || 0;
-    console.log(`Getting progress for course ${courseId}: ${progress}%`);
-    return progress;
+    return user.progress[courseId] || 0;
   };
 
   return (
