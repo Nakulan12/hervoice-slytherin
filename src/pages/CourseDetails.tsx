@@ -14,11 +14,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 const CourseDetails = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
-  const { user, updateCourseProgress, updateUserProfile } = useUser();
+  const { user, updateCourseProgress, getUserProgressForCourse } = useUser();
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [selectedModuleId, setSelectedModuleId] = useState<string | null>(null);
+  const [currentProgress, setCurrentProgress] = useState(0);
   
   useEffect(() => {
     // Simulate database fetch with delay
@@ -33,9 +34,13 @@ const CourseDetails = () => {
         if (foundCourse) {
           setCourse(foundCourse);
           
-          // Check if user has progress for this course
-          if (user?.progress && user.progress[courseId as string] !== undefined) {
+          // Check if user is enrolled in this course
+          if (user?.completedCourses?.includes(courseId as string)) {
             setIsEnrolled(true);
+            
+            // Get current progress
+            const progress = getUserProgressForCourse(courseId as string);
+            setCurrentProgress(progress);
             
             // Set the first module as selected by default
             if (foundCourse.modules.length > 0) {
@@ -56,7 +61,7 @@ const CourseDetails = () => {
     };
     
     fetchCourse();
-  }, [courseId, user]);
+  }, [courseId, user, getUserProgressForCourse]);
 
   const handleDownload = () => {
     toast({
@@ -76,6 +81,7 @@ const CourseDetails = () => {
       const newProgress = Math.min(Math.round(((moduleIndex + 1) / totalModules) * 100), 100);
       
       updateCourseProgress(courseId as string, newProgress);
+      setCurrentProgress(newProgress);
     }
   };
 
@@ -90,38 +96,46 @@ const CourseDetails = () => {
     }
     
     // Initialize progress for this course at 0%
-    if (!isEnrolled) {
-      updateCourseProgress(courseId as string, 0);
-      
-      // Add course to user's enrolled courses
-      if (user.completedCourses) {
-        updateUserProfile({
-          completedCourses: [...user.completedCourses, courseId as string]
-        });
-      } else {
-        updateUserProfile({
-          completedCourses: [courseId as string]
-        });
-      }
-      
-      setIsEnrolled(true);
-      
-      // Set first module as selected after enrollment
-      if (course?.modules.length) {
-        setSelectedModuleId(course.modules[0].id);
-      }
-      
-      toast({
-        title: "Enrollment Successful",
-        description: "You've successfully enrolled in this course!",
-      });
-    } else {
-      // Continue learning - navigate to last accessed module
-      toast({
-        title: "Continue Learning",
-        description: "Resuming your progress in this course.",
-      });
+    updateCourseProgress(courseId as string, 0);
+    setCurrentProgress(0);
+    setIsEnrolled(true);
+    
+    // Set first module as selected after enrollment
+    if (course?.modules.length) {
+      setSelectedModuleId(course.modules[0].id);
     }
+    
+    toast({
+      title: "Enrollment Successful",
+      description: "You've successfully enrolled in this course!",
+    });
+  };
+
+  const handleSubmitQuiz = () => {
+    if (!selectedModuleId || !course) return;
+    
+    // Get current module index
+    const moduleIndex = course.modules.findIndex(m => m.id === selectedModuleId);
+    if (moduleIndex === -1) return;
+    
+    // Calculate new progress (advance to next module)
+    const totalModules = course.modules.length;
+    const nextModuleIndex = Math.min(moduleIndex + 1, totalModules - 1);
+    const newProgress = Math.round(((nextModuleIndex + 1) / totalModules) * 100);
+    
+    // Update progress
+    updateCourseProgress(courseId as string, newProgress);
+    setCurrentProgress(newProgress);
+    
+    // Move to next module if available
+    if (nextModuleIndex > moduleIndex) {
+      setSelectedModuleId(course.modules[nextModuleIndex].id);
+    }
+    
+    toast({
+      title: "Quiz Completed",
+      description: "Great job! Your progress has been updated.",
+    });
   };
 
   if (loading) {
@@ -144,9 +158,6 @@ const CourseDetails = () => {
     );
   }
 
-  // Calculate current progress for this course from user data
-  const courseProgress = user?.progress?.[courseId as string] || 0;
-  
   // Selected module
   const selectedModule = course.modules.find(m => m.id === selectedModuleId);
 
@@ -253,7 +264,7 @@ const CourseDetails = () => {
               <AccordionItem key={module.id} value={module.id}>
                 <AccordionTrigger className="hover:bg-muted/30 px-4 py-2">
                   <div className="flex items-center gap-3 w-full">
-                    <div className={`h-8 w-8 rounded-full flex items-center justify-center ${isEnrolled && user?.progress?.[courseId as string] >= ((index + 1) / course.modules.length * 100) ? 'bg-primary text-primary-foreground' : 'bg-primary/20'}`}>
+                    <div className={`h-8 w-8 rounded-full flex items-center justify-center ${isEnrolled && currentProgress >= ((index + 1) / course.modules.length * 100) ? 'bg-primary text-primary-foreground' : 'bg-primary/20'}`}>
                       <span className="font-medium">{index + 1}</span>
                     </div>
                     <div className="text-left">
@@ -315,7 +326,7 @@ const CourseDetails = () => {
                       </div>
                     </div>
                   ))}
-                  <Button className="w-full">Submit Answers</Button>
+                  <Button className="w-full" onClick={handleSubmitQuiz}>Submit Answers</Button>
                 </div>
               )}
             </div>
@@ -347,14 +358,14 @@ const CourseDetails = () => {
                 <div className="space-y-2">
                   <h4 className="font-medium">Course Certificate</h4>
                   <p className="text-sm text-muted-foreground">Complete 100% of the course to receive your certificate.</p>
-                  <Progress value={courseProgress} className="mb-1" />
-                  <p className="text-xs text-muted-foreground">{courseProgress}% complete</p>
+                  <Progress value={currentProgress} className="mb-1" />
+                  <p className="text-xs text-muted-foreground">{currentProgress}% complete</p>
                 </div>
               </PopoverContent>
             </Popover>
           </div>
-          <Progress value={courseProgress} className="mb-2" />
-          <p className="text-sm text-muted-foreground">{courseProgress}% complete - {courseProgress < 100 ? `${100 - courseProgress}% remaining` : "Course completed"}</p>
+          <Progress value={currentProgress} className="mb-2" />
+          <p className="text-sm text-muted-foreground">{currentProgress}% complete - {currentProgress < 100 ? `${100 - currentProgress}% remaining` : "Course completed"}</p>
         </div>
       )}
       

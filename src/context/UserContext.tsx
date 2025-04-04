@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useEffect } from "react";
 
 interface User {
@@ -46,7 +47,17 @@ const loadInitialData = () => {
     if (savedUsers) {
       const parsedUsers = JSON.parse(savedUsers);
       Object.keys(parsedUsers).forEach(key => {
-        mockUserDatabase[key] = parsedUsers[key];
+        // Ensure dates are properly parsed
+        const user = parsedUsers[key];
+        if (user.lastLogin) user.lastLogin = new Date(user.lastLogin);
+        if (user.enrollmentDates) {
+          const parsedDates: Record<string, Date> = {};
+          Object.keys(user.enrollmentDates).forEach(courseId => {
+            parsedDates[courseId] = new Date(user.enrollmentDates[courseId]);
+          });
+          user.enrollmentDates = parsedDates;
+        }
+        mockUserDatabase[key] = user;
       });
     }
     console.log("Loaded user database:", mockUserDatabase);
@@ -59,6 +70,7 @@ const loadInitialData = () => {
 const saveDatabase = () => {
   try {
     localStorage.setItem("hervoice_users", JSON.stringify(mockUserDatabase));
+    console.log("Saved database:", mockUserDatabase);
   } catch (error) {
     console.error("Error saving user data:", error);
   }
@@ -75,17 +87,36 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Check for stored user on initial load
     const storedUser = localStorage.getItem("hervoice_user");
     if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      // Update last login time
-      const updatedUser = { 
-        ...parsedUser, 
-        lastLogin: new Date() 
-      };
-      setUser(updatedUser);
-      
-      // Update mock database
-      mockUserDatabase[updatedUser.id] = updatedUser;
-      saveDatabase();
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        
+        // Convert date strings back to Date objects
+        if (parsedUser.lastLogin) {
+          parsedUser.lastLogin = new Date(parsedUser.lastLogin);
+        }
+        
+        if (parsedUser.enrollmentDates) {
+          const parsedDates: Record<string, Date> = {};
+          Object.keys(parsedUser.enrollmentDates).forEach(courseId => {
+            parsedDates[courseId] = new Date(parsedUser.enrollmentDates[courseId]);
+          });
+          parsedUser.enrollmentDates = parsedDates;
+        }
+        
+        // Update last login time
+        const updatedUser = { 
+          ...parsedUser, 
+          lastLogin: new Date() 
+        };
+        
+        setUser(updatedUser);
+        
+        // Update mock database
+        mockUserDatabase[updatedUser.id] = updatedUser;
+        saveDatabase();
+      } catch (error) {
+        console.error("Error parsing stored user:", error);
+      }
     }
     setIsLoading(false);
   }, []);
@@ -199,13 +230,21 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateCourseProgress = (courseId: string, progress: number) => {
     if (!user) return;
     
+    console.log(`Updating progress for course ${courseId} to ${progress}%`);
+    
     // Track enrollment date if this is the first time
-    const updatedEnrollmentDates = { ...user.enrollmentDates };
+    const updatedEnrollmentDates = { ...user.enrollmentDates } || {};
     if (!updatedEnrollmentDates[courseId]) {
       updatedEnrollmentDates[courseId] = new Date();
     }
     
     const updatedProgress = { ...user.progress, [courseId]: progress };
+    
+    // Update completedCourses if not already there
+    let updatedCompletedCourses = [...(user.completedCourses || [])];
+    if (!updatedCompletedCourses.includes(courseId)) {
+      updatedCompletedCourses.push(courseId);
+    }
     
     // Update certificates if course is completed
     const updatedCertificates = [...(user.certificates || [])];
@@ -218,6 +257,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ...user, 
       progress: updatedProgress,
       enrollmentDates: updatedEnrollmentDates,
+      completedCourses: updatedCompletedCourses,
       certificates: updatedCertificates,
       // Remove isNewUser flag after course progress is made
       isNewUser: false
@@ -229,11 +269,15 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     localStorage.setItem("hervoice_user", JSON.stringify(updatedUser));
     setUser(updatedUser);
+    
+    console.log("Updated user data:", updatedUser);
   };
 
   const getUserProgressForCourse = (courseId: string): number => {
     if (!user || !user.progress) return 0;
-    return user.progress[courseId] || 0;
+    const progress = user.progress[courseId] || 0;
+    console.log(`Getting progress for course ${courseId}: ${progress}%`);
+    return progress;
   };
 
   return (
