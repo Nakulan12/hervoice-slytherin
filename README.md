@@ -1,16 +1,26 @@
-🚀 Project Overview
-📌 Project Information
-🔗 Live URL: Project Link
 
-🔧 How to Edit the Code
+# HerFuture Empower Platform
+
+## 🚀 Project Overview
+HerFuture Empower is a digital platform dedicated to women's education and empowerment. The platform offers courses, resources, and community support to help women develop essential skills, build confidence, and achieve their personal and professional goals.
+
+## 📌 Project Information
+🔗 Live URL: [herfuture-empower.lovable.app](https://herfuture-empower.lovable.app)
+
+## 💡 Key Features
+- **Personalized Learning Paths**: Customized educational journeys based on individual goals and needs
+- **Interactive Courses**: Engaging content with quizzes, practical exercises, and progress tracking
+- **Supportive Community**: Connect with peers and mentors for guidance and encouragement
+- **Resource Library**: Access to articles, videos, and tools for continuous learning
+- **Mobile Accessibility**: Learn on-the-go with a responsive, mobile-friendly interface
+
+## 🔧 How to Edit the Code
 You can modify this project in several ways:
 
-1️⃣ Editing Locally with Your Preferred IDE
+### 1️⃣ Editing Locally with Your Preferred IDE
 If you prefer working in VS Code, WebStorm, or another IDE, follow these steps:
 
-sh
-Copy
-Edit
+```sh
 # Step 1: Clone the repository
 git clone <YOUR_GIT_URL>
 
@@ -22,59 +32,44 @@ npm install
 
 # Step 4: Start the development server
 npm run dev
+```
 This will launch a local development server with auto-reloading for real-time updates.
 
-2️⃣ Editing via GitHub
+### 2️⃣ Editing via GitHub
 For quick edits directly in GitHub:
 
-Open the repository.
+1. Open the repository.
+2. Locate the file you want to modify.
+3. Click the "Edit" (pencil) icon.
+4. Make changes and commit them.
 
-Locate the file you want to modify.
-
-Click the "Edit" (pencil) icon.
-
-Make changes and commit them.
-
-3️⃣ Using GitHub Codespaces
+### 3️⃣ Using GitHub Codespaces
 For cloud-based development:
 
-Open the repository on GitHub.
+1. Open the repository on GitHub.
+2. Click the Code button.
+3. Select the Codespaces tab and launch a new session.
+4. Edit files, then commit and push your changes.
 
-Click the Code button.
-
-Select the Codespaces tab and launch a new session.
-
-Edit files, then commit and push your changes.
-
-🛠️ Technologies Used
+## 🛠️ Technologies Used
 This project utilizes:
 
-Vite – Fast development server & build tool
+- **Vite** – Fast development server & build tool
+- **TypeScript** – Type-safe JavaScript
+- **React** – Component-based UI framework
+- **shadcn-ui** – Pre-styled UI components
+- **Tailwind CSS** – Utility-first CSS framework
 
-TypeScript – Type-safe JavaScript
-
-React – Component-based UI framework
-
-shadcn-ui – Pre-styled UI components
-
-Tailwind CSS – Utility-first CSS framework
-
-🌍 Deployment
+## 🌍 Deployment
 To deploy this project:
 
-Open the project dashboard.
+1. Open the project dashboard.
+2. Navigate to Share > Publish to deploy the latest version.
 
-Navigate to Share > Publish to deploy the latest version.
-
-🌐 Connecting a Custom Domain
+## 🌐 Connecting a Custom Domain
 You can link a custom domain by:
 
-Navigating to Settings > Domains in the project dashboard.
+1. Navigating to Settings > Domains in the project dashboard.
+2. Clicking Connect Domain and following the setup instructions.
 
-Clicking Connect Domain and following the setup instructions.
-
-For more details, refer to the official documentation.
-
-Application link : herfuture-empower.lovable.app
-
-
+For more details, refer to the [official documentation](https://docs.lovable.dev/).
