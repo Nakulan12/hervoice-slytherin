@@ -46,7 +46,7 @@ const Dashboard = () => {
         .select(`
           progress,
           course_id,
-          courses:course_id (
+          courses (
             title
           )
         `)
@@ -65,7 +65,7 @@ const Dashboard = () => {
         if (courseDetails) {
           setInProgressCourse({
             id: courseId,
-            title: data[0].courses.title || courseDetails.title,
+            title: data[0].courses?.title || courseDetails.title,
             progress: data[0].progress,
             module: Math.ceil((data[0].progress / 100) * 5) // Assuming 5 modules total
           });

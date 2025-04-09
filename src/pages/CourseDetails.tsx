@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -34,13 +33,18 @@ const CourseDetails = () => {
         if (foundCourse) {
           setCourse(foundCourse);
           
-          // Check if user is enrolled in this course
-          if (user?.completedCourses?.includes(courseId as string)) {
-            setIsEnrolled(true);
-            
+          // Check if user is enrolled in this course by fetching progress
+          if (user) {
             // Get current progress
-            const progress = getUserProgressForCourse(courseId as string);
-            setCurrentProgress(progress);
+            const checkProgress = async () => {
+              const progress = await getUserProgressForCourse(courseId as string);
+              if (progress > 0) {
+                setIsEnrolled(true);
+              }
+              setCurrentProgress(progress);
+            };
+            
+            checkProgress();
             
             // Set the first module as selected by default
             if (foundCourse.modules.length > 0) {
