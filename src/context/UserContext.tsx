@@ -1,6 +1,6 @@
 
 import React, { createContext, useState, useContext, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { toast } from "@/components/ui/use-toast";
 
@@ -43,6 +43,23 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Check for session on initial load
   useEffect(() => {
+    // First set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === "SIGNED_IN" && session?.user) {
+          setSupabaseUser(session.user);
+          // Use setTimeout to prevent auth deadlocks
+          setTimeout(() => {
+            fetchUserProfile(session.user.id);
+          }, 0);
+        } else if (event === "SIGNED_OUT") {
+          setSupabaseUser(null);
+          setUser(null);
+        }
+      }
+    );
+
+    // Then check for existing session
     const checkSession = async () => {
       try {
         setIsLoading(true);
@@ -62,19 +79,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     checkSession();
-
-    // Subscribe to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === "SIGNED_IN" && session?.user) {
-          setSupabaseUser(session.user);
-          await fetchUserProfile(session.user.id);
-        } else if (event === "SIGNED_OUT") {
-          setSupabaseUser(null);
-          setUser(null);
-        }
-      }
-    );
 
     return () => {
       subscription.unsubscribe();
@@ -109,8 +113,11 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
           lastLogin: data.last_login ? new Date(data.last_login) : new Date(),
         });
       }
+      
+      setIsLoading(false);
     } catch (error) {
       console.error("Error fetching user profile:", error);
+      setIsLoading(false);
     }
   };
 
