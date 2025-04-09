@@ -63,9 +63,13 @@ const Dashboard = () => {
         const courseDetails = coursesData.find(c => c.id === courseId);
         
         if (courseDetails) {
+          // Access the title correctly using optional chaining
+          // courses is an object, not an array in this context
+          const courseTitle = data[0].courses?.title;
+          
           setInProgressCourse({
             id: courseId,
-            title: data[0].courses?.title || courseDetails.title,
+            title: courseTitle || courseDetails.title,
             progress: data[0].progress,
             module: Math.ceil((data[0].progress / 100) * 5) // Assuming 5 modules total
           });
