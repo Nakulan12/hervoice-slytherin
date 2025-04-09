@@ -7,11 +7,18 @@ import { coursesData } from "@/data/coursesData";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { supabase } from "@/lib/supabase";
 
 const Dashboard = () => {
   const { user } = useUser();
   const [greeting, setGreeting] = useState("");
   const [recommended, setRecommended] = useState(coursesData.slice(0, 3));
+  const [inProgressCourse, setInProgressCourse] = useState<{
+    id: string;
+    title: string;
+    progress: number;
+    module: number;
+  } | null>(null);
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -22,7 +29,67 @@ const Dashboard = () => {
     // Simulate AI recommendations by randomly selecting courses
     const shuffled = [...coursesData].sort(() => 0.5 - Math.random());
     setRecommended(shuffled.slice(0, 3));
-  }, []);
+    
+    // Fetch user's in-progress courses
+    if (user) {
+      fetchInProgressCourse();
+    }
+  }, [user]);
+
+  const fetchInProgressCourse = async () => {
+    if (!user) return;
+    
+    try {
+      // Get the most recently updated course progress
+      const { data, error } = await supabase
+        .from("user_progress")
+        .select(`
+          progress,
+          course_id,
+          courses:course_id (
+            title
+          )
+        `)
+        .eq("user_id", user.id)
+        .lt("progress", 100) // Not completed
+        .order("enrolled_at", { ascending: false })
+        .limit(1);
+        
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        // Find the course details from coursesData
+        const courseId = data[0].course_id;
+        const courseDetails = coursesData.find(c => c.id === courseId);
+        
+        if (courseDetails) {
+          setInProgressCourse({
+            id: courseId,
+            title: data[0].courses.title || courseDetails.title,
+            progress: data[0].progress,
+            module: Math.ceil((data[0].progress / 100) * 5) // Assuming 5 modules total
+          });
+        }
+      } else {
+        // If no course in progress, use a default
+        setInProgressCourse({
+          id: "digital-basics",
+          title: "Digital Literacy Basics",
+          progress: 35,
+          module: 2
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching in-progress course:", error);
+      // Fall back to default
+      setInProgressCourse({
+        id: "digital-basics",
+        title: "Digital Literacy Basics",
+        progress: 35,
+        module: 2
+      });
+    }
+  };
 
   return (
     <div className="container px-4 py-6">
@@ -45,19 +112,24 @@ const Dashboard = () => {
           </Link>
         </div>
         
-        <div className="relative rounded-lg p-4 border border-border bg-muted/30 mb-4">
-          <div className="space-y-2">
-            <h3 className="font-medium">Digital Literacy Basics</h3>
-            <div className="h-2 bg-muted rounded-full">
-              <div className="h-full bg-primary rounded-full w-[35%]"></div>
+        {inProgressCourse && (
+          <div className="relative rounded-lg p-4 border border-border bg-muted/30 mb-4">
+            <div className="space-y-2">
+              <h3 className="font-medium">{inProgressCourse.title}</h3>
+              <div className="h-2 bg-muted rounded-full">
+                <div 
+                  className="h-full bg-primary rounded-full" 
+                  style={{ width: `${inProgressCourse.progress}%` }}
+                ></div>
+              </div>
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>{inProgressCourse.progress}% complete</span>
+                <span>Module {inProgressCourse.module} of 5</span>
+              </div>
             </div>
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>35% complete</span>
-              <span>Module 2 of 5</span>
-            </div>
+            <Link to={`/courses/${inProgressCourse.id}`} className="absolute inset-0" aria-hidden="true"></Link>
           </div>
-          <Link to="/courses/digital-basics" className="absolute inset-0" aria-hidden="true"></Link>
-        </div>
+        )}
       </section>
       
       {/* AI Recommended Courses */}

@@ -55,10 +55,11 @@ const Login = () => {
         description: "Welcome back to HerVoice!",
       });
       navigate("/", { replace: true });
-    } catch (error) {
+    } catch (error: any) {
+      const errorMessage = error?.message || "Please check your credentials and try again.";
       toast({
         title: "Login failed",
-        description: "Please check your credentials and try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

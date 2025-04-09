@@ -36,10 +36,11 @@ const Register = () => {
         description: "Welcome to HerVoice! Your journey to digital empowerment starts now.",
       });
       navigate("/", { replace: true });
-    } catch (error) {
+    } catch (error: any) {
+      const errorMessage = error?.message || "Please check your information and try again.";
       toast({
         title: "Registration failed",
-        description: "Please check your information and try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

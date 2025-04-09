@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -14,6 +15,7 @@ import { useUser } from "@/context/UserContext";
 import { useTheme } from "@/context/ThemeContext";
 import { toast } from "@/components/ui/use-toast";
 import { Progress } from "@/components/ui/progress";
+import { supabase } from "@/lib/supabase";
 
 const Profile = () => {
   const { user, logout, updateUserProfile } = useUser();
@@ -21,20 +23,54 @@ const Profile = () => {
   const navigate = useNavigate();
   const isDarkMode = theme === 'dark';
   
-  // Calculate overall progress
-  const courseProgresses = user?.progress ? Object.values(user.progress) : [];
-  const averageProgress = courseProgresses.length > 0 
-    ? Math.round(courseProgresses.reduce((sum, val) => sum + val, 0) / courseProgresses.length) 
-    : 0;
+  const [coursesInProgress, setCoursesInProgress] = useState(0);
+  const [completedCourses, setCompletedCourses] = useState(0);
+  const [averageProgress, setAverageProgress] = useState(0);
+  const [achievementsCount, setAchievementsCount] = useState(1);
   
-  // Calculate completed courses count
-  const completedCoursesCount = user?.completedCourses?.length || 0;
+  useEffect(() => {
+    if (user) {
+      fetchUserProgress();
+    }
+  }, [user]);
   
-  // Calculate achievements (simplified version)
-  const achievementsCount = completedCoursesCount > 0 ? completedCoursesCount + 1 : 1;
+  const fetchUserProgress = async () => {
+    if (!user) return;
+    
+    try {
+      // Get all user progress records
+      const { data, error } = await supabase
+        .from("user_progress")
+        .select("*")
+        .eq("user_id", user.id);
+        
+      if (error) throw error;
+      
+      if (data) {
+        // Count courses in progress
+        const inProgress = data.filter(p => p.progress > 0 && p.progress < 100).length;
+        setCoursesInProgress(inProgress);
+        
+        // Count completed courses
+        const completed = data.filter(p => p.completed).length;
+        setCompletedCourses(completed);
+        
+        // Calculate average progress
+        if (data.length > 0) {
+          const totalProgress = data.reduce((sum, record) => sum + record.progress, 0);
+          setAverageProgress(Math.round(totalProgress / data.length));
+        }
+        
+        // Calculate achievements (simplified version)
+        setAchievementsCount(completed > 0 ? completed + 1 : 1);
+      }
+    } catch (error) {
+      console.error("Error fetching user progress:", error);
+    }
+  };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     toast({
       title: "Logged out",
       description: "You have been logged out successfully."
@@ -114,7 +150,7 @@ const Profile = () => {
             <div className="bg-secondary/50 rounded-full h-12 w-12 flex items-center justify-center mx-auto mb-2">
               <Book size={24} className="text-primary" />
             </div>
-            <p className="text-2xl font-semibold">{Object.keys(user?.progress || {}).length}</p>
+            <p className="text-2xl font-semibold">{coursesInProgress}</p>
             <p className="text-sm text-muted-foreground">Courses in Progress</p>
           </div>
           
@@ -127,7 +163,7 @@ const Profile = () => {
           </div>
         </div>
         
-        {Object.keys(user?.progress || {}).length > 0 && (
+        {coursesInProgress > 0 && (
           <div className="mt-4 px-2">
             <p className="text-sm font-medium mb-2">Overall Progress</p>
             <Progress value={averageProgress} className="h-2" />
