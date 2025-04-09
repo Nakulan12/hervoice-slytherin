@@ -295,7 +295,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
       
-      return data?.progress || 0;
+      return data?.progress ?? 0;
     } catch (error) {
       console.error("Error fetching course progress:", error);
       return 0;
