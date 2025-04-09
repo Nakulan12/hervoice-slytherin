@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useUser } from "@/context/UserContext";
 import VoiceNavigation from "@/components/VoiceNavigation";
@@ -63,10 +62,9 @@ const Dashboard = () => {
         const courseDetails = coursesData.find(c => c.id === courseId);
         
         if (courseDetails) {
-          // Fix the type issue: courses is an object with a title property, not an array
-          // The correct type handling for the nested object from Supabase
-          const courseTitle = typeof data[0].courses === 'object' && data[0].courses ? 
-                            (data[0].courses as any).title : '';
+          // Fix the type error by safely extracting the title from the courses object
+          const courseTitle = data[0].courses && typeof data[0].courses === 'object' ? 
+                            (data[0].courses as any).title : courseDetails.title;
           
           setInProgressCourse({
             id: courseId,
