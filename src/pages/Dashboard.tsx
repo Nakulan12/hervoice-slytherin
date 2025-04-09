@@ -63,9 +63,10 @@ const Dashboard = () => {
         const courseDetails = coursesData.find(c => c.id === courseId);
         
         if (courseDetails) {
-          // Access the title correctly using optional chaining
-          // courses is an object, not an array in this context
-          const courseTitle = data[0].courses?.title;
+          // Fix the type issue: courses is an object with a title property, not an array
+          // The correct type handling for the nested object from Supabase
+          const courseTitle = typeof data[0].courses === 'object' && data[0].courses ? 
+                            (data[0].courses as any).title : '';
           
           setInProgressCourse({
             id: courseId,
