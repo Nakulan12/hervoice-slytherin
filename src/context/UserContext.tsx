@@ -151,7 +151,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (authError) throw authError;
 
       if (authData.user) {
-        // Create user profile in database using the service role to bypass RLS
+        // Create user profile in database
         const { error: profileError } = await supabase.from("users").insert({
           id: authData.user.id,
           name,
@@ -162,17 +162,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
           last_login: new Date().toISOString(),
         });
 
-        if (profileError) {
-          console.error("Error creating user profile:", profileError);
-          
-          // If profile creation fails, we should inform the user but not block the auth flow
-          // The profile can be created later when they log in
-          toast({
-            title: "Note",
-            description: "Your account was created but we couldn't set up your profile. This will be fixed when you log in.",
-            variant: "default"
-          });
-        }
+        if (profileError) throw profileError;
         
         // User will be set by the auth state change listener
       }

@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUser } from "@/context/UserContext";
 import { toast } from "@/components/ui/use-toast";
-import { AlertCircle } from "lucide-react";
 
 const languages = [
   { value: "english", label: "English" },
@@ -23,13 +22,11 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [language, setLanguage] = useState("english");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const { register } = useUser();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
     setLoading(true);
     
     try {
@@ -41,8 +38,6 @@ const Register = () => {
       navigate("/", { replace: true });
     } catch (error: any) {
       const errorMessage = error?.message || "Please check your information and try again.";
-      console.error("Registration error:", error);
-      setError(errorMessage);
       toast({
         title: "Registration failed",
         description: errorMessage,
@@ -63,13 +58,6 @@ const Register = () => {
         
         <div className="bg-card border border-border rounded-xl shadow-lg p-6">
           <h2 className="text-2xl font-semibold mb-6 text-center">Create Your Account</h2>
-          
-          {error && (
-            <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg flex items-start gap-2">
-              <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
-              <p className="text-sm text-destructive">{error}</p>
-            </div>
-          )}
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
