@@ -9,7 +9,114 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      courses: {
+        Row: {
+          category: string | null
+          description: string | null
+          duration: string | null
+          id: string
+          image_url: string | null
+          level: string | null
+          title: string
+        }
+        Insert: {
+          category?: string | null
+          description?: string | null
+          duration?: string | null
+          id: string
+          image_url?: string | null
+          level?: string | null
+          title: string
+        }
+        Update: {
+          category?: string | null
+          description?: string | null
+          duration?: string | null
+          id?: string
+          image_url?: string | null
+          level?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
+      user_progress: {
+        Row: {
+          completed: boolean | null
+          completed_at: string | null
+          course_id: string
+          enrolled_at: string
+          id: string
+          progress: number | null
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean | null
+          completed_at?: string | null
+          course_id: string
+          enrolled_at?: string
+          id?: string
+          progress?: number | null
+          user_id: string
+        }
+        Update: {
+          completed?: boolean | null
+          completed_at?: string | null
+          course_id?: string
+          enrolled_at?: string
+          id?: string
+          progress?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_progress_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          is_new_user: boolean | null
+          last_login: string | null
+          name: string
+          preferred_language: string | null
+          profile_image: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id: string
+          is_new_user?: boolean | null
+          last_login?: string | null
+          name: string
+          preferred_language?: string | null
+          profile_image?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          is_new_user?: boolean | null
+          last_login?: string | null
+          name?: string
+          preferred_language?: string | null
+          profile_image?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

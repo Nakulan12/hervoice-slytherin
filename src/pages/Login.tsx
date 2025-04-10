@@ -54,6 +54,7 @@ const Login = () => {
         title: "Login successful",
         description: "Welcome back to HerVoice!",
       });
+      // Force navigation to the dashboard after successful login
       navigate("/", { replace: true });
     } catch (error: any) {
       const errorMessage = error?.message || "Please check your credentials and try again.";
