@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -45,6 +46,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // First set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log("Auth state changed:", event, session?.user?.id);
         if (event === "SIGNED_IN" && session?.user) {
           setSupabaseUser(session.user);
           // Use setTimeout to prevent auth deadlocks
@@ -52,6 +54,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             fetchUserProfile(session.user.id);
           }, 0);
         } else if (event === "SIGNED_OUT") {
+          console.log("User signed out");
           setSupabaseUser(null);
           setUser(null);
         }
@@ -67,12 +70,15 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
+          console.log("Found existing session:", session.user.id);
           setSupabaseUser(session.user);
           await fetchUserProfile(session.user.id);
+        } else {
+          console.log("No existing session found");
+          setIsLoading(false);
         }
       } catch (error) {
         console.error("Error checking session:", error);
-      } finally {
         setIsLoading(false);
       }
     };
@@ -91,9 +97,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .from("users")
         .select("*")
         .eq("id", userId)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error && error.code !== "PGRST116") throw error;
 
       if (data) {
         // Update user's last login
@@ -111,11 +117,32 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
           isNewUser: data.is_new_user,
           lastLogin: data.last_login ? new Date(data.last_login) : new Date(),
         });
+      } else {
+        // If the user exists in auth but not in the users table
+        // We'll still consider them authenticated but with minimal info
+        if (supabaseUser) {
+          console.log("User exists in auth but not in users table. Setting minimal user info.");
+          setUser({
+            id: userId,
+            name: supabaseUser.email?.split("@")[0] || "User",
+            email: supabaseUser.email || "",
+            preferredLanguage: "English"
+          });
+        }
       }
       
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching user profile:", error);
+      // Even if profile fetch fails, set basic user info from auth
+      if (supabaseUser) {
+        setUser({
+          id: userId,
+          name: supabaseUser.email?.split("@")[0] || "User",
+          email: supabaseUser.email || "",
+          preferredLanguage: "English"
+        });
+      }
       setIsLoading(false);
     }
   };
@@ -123,13 +150,18 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
+      console.log("Attempting login for:", email);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Login error:", error);
+        throw error;
+      }
       
+      console.log("Login successful:", data.user?.id);
       // User will be set by the auth state change listener
     } catch (error) {
       console.error("Login failed:", error);

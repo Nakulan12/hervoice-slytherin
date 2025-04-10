@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,8 +11,16 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{email?: string, password?: string}>({});
-  const { login } = useUser();
+  const { login, isAuthenticated, isLoading } = useUser();
   const navigate = useNavigate();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      console.log("User is authenticated, redirecting to home");
+      navigate("/", { replace: true });
+    }
+  }, [isAuthenticated, isLoading, navigate]);
 
   const validateForm = () => {
     const newErrors: {email?: string, password?: string} = {};
@@ -49,11 +56,13 @@ const Login = () => {
     setLoading(true);
     
     try {
+      console.log("Submitting login form");
       await login(email, password);
       toast({
         title: "Login successful",
         description: "Welcome back to HerVoice!",
       });
+      console.log("Login successful, redirecting to home");
       // Force navigation to the dashboard after successful login
       navigate("/", { replace: true });
     } catch (error: any) {
