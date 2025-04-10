@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useUser } from "@/context/UserContext";
@@ -14,10 +14,6 @@ const Login = () => {
   const [errors, setErrors] = useState<{email?: string, password?: string}>({});
   const { login } = useUser();
   const navigate = useNavigate();
-  const location = useLocation();
-  
-  // Get the intended destination from location state, or default to dashboard
-  const from = (location.state as any)?.from?.pathname || "/dashboard";
 
   const validateForm = () => {
     const newErrors: {email?: string, password?: string} = {};
@@ -58,8 +54,7 @@ const Login = () => {
         title: "Login successful",
         description: "Welcome back to HerVoice!",
       });
-      // Navigate to the intended destination after login
-      navigate(from, { replace: true });
+      navigate("/", { replace: true });
     } catch (error: any) {
       const errorMessage = error?.message || "Please check your credentials and try again.";
       toast({
