@@ -15,6 +15,7 @@ import CourseDetails from "./pages/CourseDetails";
 import Profile from "./pages/Profile";
 import ChatBot from "./pages/ChatBot";
 import Games from "./pages/Games";
+import Index from "./pages/Index";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MainLayout from "./components/MainLayout";
 import NotFound from "./pages/NotFound";
@@ -34,9 +35,10 @@ const App: React.FC = () => {
               <Sonner />
               <BrowserRouter>
                 <Routes>
+                  <Route path="/" element={<Index />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
-                  <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+                  <Route path="/dashboard" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
                     <Route index element={<Dashboard />} />
                     <Route path="courses" element={<Courses />} />
                     <Route path="courses/:courseId" element={<CourseDetails />} />

@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -45,6 +46,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // First set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log("Auth state changed:", event, session?.user?.id);
         if (event === "SIGNED_IN" && session?.user) {
           setSupabaseUser(session.user);
           // Use setTimeout to prevent auth deadlocks
@@ -67,12 +69,15 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
+          console.log("Existing session found:", session.user.id);
           setSupabaseUser(session.user);
           await fetchUserProfile(session.user.id);
+        } else {
+          console.log("No existing session found");
+          setIsLoading(false);
         }
       } catch (error) {
         console.error("Error checking session:", error);
-      } finally {
         setIsLoading(false);
       }
     };
@@ -87,13 +92,26 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Fetch user profile from database
   const fetchUserProfile = async (userId: string) => {
     try {
+      console.log("Fetching user profile for:", userId);
       const { data, error } = await supabase
         .from("users")
         .select("*")
         .eq("id", userId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching user profile:", error);
+        
+        // If profile doesn't exist, create one if we have the Supabase user
+        if (error.code === "PGRST116" && supabaseUser) {
+          console.log("Profile doesn't exist, attempting to create one");
+          await createUserProfile(supabaseUser);
+          return;
+        }
+        
+        setIsLoading(false);
+        return;
+      }
 
       if (data) {
         // Update user's last login
@@ -115,7 +133,40 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       setIsLoading(false);
     } catch (error) {
-      console.error("Error fetching user profile:", error);
+      console.error("Error in fetchUserProfile:", error);
+      setIsLoading(false);
+    }
+  };
+
+  // Create a new user profile
+  const createUserProfile = async (authUser: User) => {
+    try {
+      console.log("Creating new user profile for:", authUser.id);
+      const { error } = await supabase.from("users").insert({
+        id: authUser.id,
+        name: authUser.email?.split('@')[0] || "New User",
+        email: authUser.email || "",
+        preferred_language: "English",
+        is_new_user: true,
+        created_at: new Date().toISOString(),
+        last_login: new Date().toISOString(),
+      });
+
+      if (error) {
+        console.error("Error creating user profile:", error);
+        toast({
+          title: "Error",
+          description: "Could not create user profile. Please try again.",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Fetch the profile we just created
+      await fetchUserProfile(authUser.id);
+    } catch (error) {
+      console.error("Error in createUserProfile:", error);
       setIsLoading(false);
     }
   };
@@ -151,7 +202,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (authError) throw authError;
 
       if (authData.user) {
-        // Create user profile in database using the service role to bypass RLS
+        // Create user profile in database
         const { error: profileError } = await supabase.from("users").insert({
           id: authData.user.id,
           name,
