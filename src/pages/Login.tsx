@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useUser } from "@/context/UserContext";
@@ -13,14 +14,19 @@ const Login = () => {
   const [errors, setErrors] = useState<{email?: string, password?: string}>({});
   const { login, isAuthenticated, isLoading } = useUser();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Get the redirect path from location state, or default to "/"
+  const from = location.state?.from?.pathname || "/";
 
   // Redirect if already authenticated
   useEffect(() => {
+    console.log("Login page - Auth state:", { isAuthenticated, isLoading });
     if (isAuthenticated && !isLoading) {
-      console.log("User is authenticated, redirecting to home");
-      navigate("/", { replace: true });
+      console.log("User is authenticated, redirecting to:", from);
+      navigate(from, { replace: true });
     }
-  }, [isAuthenticated, isLoading, navigate]);
+  }, [isAuthenticated, isLoading, navigate, from]);
 
   const validateForm = () => {
     const newErrors: {email?: string, password?: string} = {};
@@ -62,9 +68,8 @@ const Login = () => {
         title: "Login successful",
         description: "Welcome back to HerVoice!",
       });
-      console.log("Login successful, redirecting to home");
-      // Force navigation to the dashboard after successful login
-      navigate("/", { replace: true });
+      console.log("Login successful, redirecting to:", from);
+      // Navigation will happen in useEffect when isAuthenticated becomes true
     } catch (error: any) {
       const errorMessage = error?.message || "Please check your credentials and try again.";
       toast({
@@ -72,7 +77,6 @@ const Login = () => {
         description: errorMessage,
         variant: "destructive",
       });
-    } finally {
       setLoading(false);
     }
   };

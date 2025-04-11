@@ -43,7 +43,31 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Check for session on initial load
   useEffect(() => {
-    // First set up auth state listener
+    console.log("UserProvider initialized");
+    // First check for existing session
+    const checkSession = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Get current session
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          console.log("Found existing session:", session.user.id);
+          setSupabaseUser(session.user);
+          // Don't await here to prevent blocking
+          fetchUserProfile(session.user.id);
+        } else {
+          console.log("No existing session found");
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error("Error checking session:", error);
+        setIsLoading(false);
+      }
+    };
+
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         console.log("Auth state changed:", event, session?.user?.id);
@@ -57,31 +81,10 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.log("User signed out");
           setSupabaseUser(null);
           setUser(null);
+          setIsLoading(false);
         }
       }
     );
-
-    // Then check for existing session
-    const checkSession = async () => {
-      try {
-        setIsLoading(true);
-        
-        // Get current session
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session?.user) {
-          console.log("Found existing session:", session.user.id);
-          setSupabaseUser(session.user);
-          await fetchUserProfile(session.user.id);
-        } else {
-          console.log("No existing session found");
-          setIsLoading(false);
-        }
-      } catch (error) {
-        console.error("Error checking session:", error);
-        setIsLoading(false);
-      }
-    };
 
     checkSession();
 
@@ -93,15 +96,20 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Fetch user profile from database
   const fetchUserProfile = async (userId: string) => {
     try {
+      console.log("Fetching user profile for:", userId);
       const { data, error } = await supabase
         .from("users")
         .select("*")
         .eq("id", userId)
         .maybeSingle();
 
-      if (error && error.code !== "PGRST116") throw error;
+      if (error && error.code !== "PGRST116") {
+        console.error("Error fetching profile:", error);
+        throw error;
+      }
 
       if (data) {
+        console.log("User profile found:", data.name);
         // Update user's last login
         await supabase
           .from("users")
@@ -117,25 +125,23 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
           isNewUser: data.is_new_user,
           lastLogin: data.last_login ? new Date(data.last_login) : new Date(),
         });
-      } else {
+      } else if (supabaseUser) {
         // If the user exists in auth but not in the users table
-        // We'll still consider them authenticated but with minimal info
-        if (supabaseUser) {
-          console.log("User exists in auth but not in users table. Setting minimal user info.");
-          setUser({
-            id: userId,
-            name: supabaseUser.email?.split("@")[0] || "User",
-            email: supabaseUser.email || "",
-            preferredLanguage: "English"
-          });
-        }
+        console.log("Creating minimal user profile for auth user");
+        setUser({
+          id: userId,
+          name: supabaseUser.email?.split("@")[0] || "User",
+          email: supabaseUser.email || "",
+          preferredLanguage: "English"
+        });
       }
       
       setIsLoading(false);
     } catch (error) {
-      console.error("Error fetching user profile:", error);
-      // Even if profile fetch fails, set basic user info from auth
+      console.error("Error in fetchUserProfile:", error);
+      // Even if profile fetch fails, set minimal user info from auth
       if (supabaseUser) {
+        console.log("Setting minimal user info after profile fetch error");
         setUser({
           id: userId,
           name: supabaseUser.email?.split("@")[0] || "User",
