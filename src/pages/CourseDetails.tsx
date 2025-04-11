@@ -40,8 +40,10 @@ const CourseDetails = () => {
               const progress = await getUserProgressForCourse(courseId as string);
               if (progress > 0) {
                 setIsEnrolled(true);
+                setCurrentProgress(progress);
+              } else {
+                setCurrentProgress(0);
               }
-              setCurrentProgress(progress);
             };
             
             checkProgress();
@@ -163,7 +165,7 @@ const CourseDetails = () => {
   }
 
   // Selected module
-  const selectedModule = course.modules.find(m => m.id === selectedModuleId);
+  const selectedModule = course?.modules.find(m => m.id === selectedModuleId);
 
   return (
     <div className="container px-4 py-6">
@@ -173,13 +175,13 @@ const CourseDetails = () => {
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
           <ArrowLeft size={20} />
         </Button>
-        <h1 className="text-2xl font-semibold">{course.title}</h1>
+        <h1 className="text-2xl font-semibold">{course?.title}</h1>
       </div>
       
       <div className="rounded-lg overflow-hidden mb-6 aspect-video">
         <img 
-          src={course.image} 
-          alt={course.title} 
+          src={course?.image} 
+          alt={course?.title} 
           className="w-full h-full object-cover"
         />
       </div>
@@ -350,7 +352,7 @@ const CourseDetails = () => {
         </div>
       </div>
       
-      {isEnrolled && (
+      {isEnrolled ? (
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-xl font-semibold">Your Progress</h2>
@@ -371,7 +373,7 @@ const CourseDetails = () => {
           <Progress value={currentProgress} className="mb-2" />
           <p className="text-sm text-muted-foreground">{currentProgress}% complete - {currentProgress < 100 ? `${100 - currentProgress}% remaining` : "Course completed"}</p>
         </div>
-      )}
+      ) : null}
       
       <div className="flex flex-col gap-4 sm:flex-row">
         {!isEnrolled ? (
@@ -379,7 +381,7 @@ const CourseDetails = () => {
             Enroll Now
           </Button>
         ) : (
-          <Button className="flex-1" onClick={() => selectedModule ? null : setSelectedModuleId(course.modules[0]?.id)}>
+          <Button className="flex-1" onClick={() => selectedModule ? null : setSelectedModuleId(course?.modules[0]?.id)}>
             Continue Learning
           </Button>
         )}
