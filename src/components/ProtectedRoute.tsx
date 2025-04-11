@@ -35,12 +35,13 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
+  // If not authenticated, redirect to login
   if (!isAuthenticated) {
     console.log("Not authenticated, redirecting to login from:", location.pathname);
-    // Pass the current location in state to potentially redirect back after login
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  // User is authenticated, render the protected content
   console.log("Authenticated, rendering protected content:", location.pathname);
   return <>{children}</>;
 };

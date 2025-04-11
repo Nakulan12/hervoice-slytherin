@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,7 @@ const Login = () => {
     console.log("Login page - Auth state:", { isAuthenticated, isLoading, redirectTarget: from });
     if (isAuthenticated && !isLoading) {
       console.log("User is authenticated, redirecting to:", from);
-      // Added a small timeout to ensure state is fully updated
+      // Force navigation to happen in the next tick to ensure state updates are processed
       setTimeout(() => {
         navigate(from, { replace: true });
       }, 100);
@@ -71,7 +72,10 @@ const Login = () => {
         description: "Welcome back to HerVoice!",
       });
       console.log("Login successful, redirecting to:", from);
-      // Navigation will happen in useEffect when isAuthenticated becomes true
+      // Force navigation to happen after a short delay
+      setTimeout(() => {
+        navigate(from, { replace: true });
+      }, 200);
     } catch (error: any) {
       const errorMessage = error?.message || "Please check your credentials and try again.";
       toast({
