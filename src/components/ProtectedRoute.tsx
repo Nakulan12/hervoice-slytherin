@@ -30,7 +30,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   if (isLoading && showLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-primary">Loading...</div>
+        <div className="animate-pulse text-primary">Loading authentication state...</div>
       </div>
     );
   }
