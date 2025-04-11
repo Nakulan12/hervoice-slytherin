@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -21,10 +20,13 @@ const Login = () => {
 
   // Redirect if already authenticated
   useEffect(() => {
-    console.log("Login page - Auth state:", { isAuthenticated, isLoading });
+    console.log("Login page - Auth state:", { isAuthenticated, isLoading, redirectTarget: from });
     if (isAuthenticated && !isLoading) {
       console.log("User is authenticated, redirecting to:", from);
-      navigate(from, { replace: true });
+      // Added a small timeout to ensure state is fully updated
+      setTimeout(() => {
+        navigate(from, { replace: true });
+      }, 100);
     }
   }, [isAuthenticated, isLoading, navigate, from]);
 

@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -40,58 +39,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [supabaseUser, setSupabaseUser] = useState<User | null>(null);
-
-  // Check for session on initial load
-  useEffect(() => {
-    console.log("UserProvider initialized");
-    // First check for existing session
-    const checkSession = async () => {
-      try {
-        setIsLoading(true);
-        
-        // Get current session
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session?.user) {
-          console.log("Found existing session:", session.user.id);
-          setSupabaseUser(session.user);
-          // Don't await here to prevent blocking
-          fetchUserProfile(session.user.id);
-        } else {
-          console.log("No existing session found");
-          setIsLoading(false);
-        }
-      } catch (error) {
-        console.error("Error checking session:", error);
-        setIsLoading(false);
-      }
-    };
-
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log("Auth state changed:", event, session?.user?.id);
-        if (event === "SIGNED_IN" && session?.user) {
-          setSupabaseUser(session.user);
-          // Use setTimeout to prevent auth deadlocks
-          setTimeout(() => {
-            fetchUserProfile(session.user.id);
-          }, 0);
-        } else if (event === "SIGNED_OUT") {
-          console.log("User signed out");
-          setSupabaseUser(null);
-          setUser(null);
-          setIsLoading(false);
-        }
-      }
-    );
-
-    checkSession();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
 
   // Fetch user profile from database
   const fetchUserProfile = async (userId: string) => {
@@ -153,6 +100,62 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Check for session on initial load
+  useEffect(() => {
+    console.log("UserProvider initialized");
+    
+    // Set up auth state listener first
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log("Auth state changed:", event, session?.user?.id);
+        
+        if (session?.user) {
+          setSupabaseUser(session.user);
+          
+          // Use setTimeout to prevent auth deadlocks
+          setTimeout(() => {
+            fetchUserProfile(session.user.id);
+          }, 0);
+        } else if (event === "SIGNED_OUT") {
+          console.log("User signed out");
+          setSupabaseUser(null);
+          setUser(null);
+          setIsLoading(false);
+        }
+      }
+    );
+
+    // Then check for existing session
+    const checkSession = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Get current session
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          console.log("Found existing session:", session.user.id);
+          setSupabaseUser(session.user);
+          
+          // Don't await here to prevent blocking
+          fetchUserProfile(session.user.id);
+        } else {
+          console.log("No existing session found");
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error("Error checking session:", error);
+        setIsLoading(false);
+      }
+    };
+
+    checkSession();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
@@ -172,8 +175,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error("Login failed:", error);
       throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
 
