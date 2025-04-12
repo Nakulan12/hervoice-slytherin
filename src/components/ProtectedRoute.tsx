@@ -1,11 +1,12 @@
 
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useUser } from "@/context/UserContext";
 import { useEffect, useState } from "react";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useUser();
   const location = useLocation();
+  const navigate = useNavigate();
   const [showLoading, setShowLoading] = useState(true);
   const [initialCheckDone, setInitialCheckDone] = useState(false);
   
@@ -24,6 +25,14 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       setInitialCheckDone(true);
     }
   }, [isLoading]);
+
+  // This effect handles the actual navigation after authentication state is determined
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated && initialCheckDone) {
+      console.log("Not authenticated (in effect), redirecting to login from:", location.pathname);
+      navigate("/login", { state: { from: location }, replace: true });
+    }
+  }, [isAuthenticated, isLoading, initialCheckDone, location, navigate]);
 
   useEffect(() => {
     console.log("ProtectedRoute - Auth state:", { 
@@ -44,10 +53,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  // If not authenticated, redirect to login
+  // If not authenticated, don't render children
   if (!isAuthenticated && initialCheckDone) {
-    console.log("Not authenticated, redirecting to login from:", location.pathname);
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    console.log("Not authenticated, not rendering children for:", location.pathname);
+    return null; // Don't render anything, the effect will handle the redirect
   }
 
   // User is authenticated, render the protected content

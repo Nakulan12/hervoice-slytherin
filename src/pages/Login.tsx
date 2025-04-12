@@ -24,8 +24,8 @@ const Login = () => {
     console.log("Login page - Auth state:", { isAuthenticated, isLoading, redirectTarget: from });
     if (isAuthenticated && !isLoading) {
       console.log("User is authenticated, redirecting to:", from);
-      // Force immediate navigation with replace to prevent back button issues
-      window.location.href = "/";
+      // Use navigate with replace for React Router based navigation
+      navigate("/", { replace: true });
     }
   }, [isAuthenticated, isLoading, navigate, from]);
 
@@ -71,8 +71,8 @@ const Login = () => {
       });
       console.log("Login successful, redirecting to:", from);
       
-      // Use window.location to force a full page reload and navigation
-      window.location.href = "/";
+      // Navigate to home page using React Router
+      navigate("/", { replace: true });
     } catch (error: any) {
       const errorMessage = error?.message || "Please check your credentials and try again.";
       toast({

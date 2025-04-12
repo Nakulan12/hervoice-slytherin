@@ -35,8 +35,11 @@ const App: React.FC = () => {
               <Sonner />
               <BrowserRouter>
                 <Routes>
+                  {/* Public routes */}
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
+                  
+                  {/* Protected routes */}
                   <Route path="/" element={
                     <ProtectedRoute>
                       <MainLayout />
