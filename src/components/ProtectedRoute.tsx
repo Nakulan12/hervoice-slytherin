@@ -7,6 +7,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useUser();
   const location = useLocation();
   const [showLoading, setShowLoading] = useState(true);
+  const [initialCheckDone, setInitialCheckDone] = useState(false);
   
   // Add a small delay before showing loading to prevent flicker
   useEffect(() => {
@@ -17,14 +18,22 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return () => clearTimeout(timer);
   }, [isLoading]);
 
+  // Mark when initial auth check is complete
+  useEffect(() => {
+    if (!isLoading) {
+      setInitialCheckDone(true);
+    }
+  }, [isLoading]);
+
   useEffect(() => {
     console.log("ProtectedRoute - Auth state:", { 
       isAuthenticated, 
-      isLoading, 
+      isLoading,
+      initialCheckDone,
       path: location.pathname,
       timestamp: new Date().toISOString()
     });
-  }, [isAuthenticated, isLoading, location]);
+  }, [isAuthenticated, isLoading, initialCheckDone, location]);
   
   // Don't render anything until we've checked authentication
   if (isLoading && showLoading) {
@@ -36,7 +45,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   // If not authenticated, redirect to login
-  if (!isAuthenticated) {
+  if (!isAuthenticated && initialCheckDone) {
     console.log("Not authenticated, redirecting to login from:", location.pathname);
     return <Navigate to="/login" state={{ from: location }} replace />;
   }

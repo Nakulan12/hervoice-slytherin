@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,8 @@ const Login = () => {
     console.log("Login page - Auth state:", { isAuthenticated, isLoading, redirectTarget: from });
     if (isAuthenticated && !isLoading) {
       console.log("User is authenticated, redirecting to:", from);
-      navigate("/", { replace: true });
+      // Force immediate navigation with replace to prevent back button issues
+      window.location.href = "/";
     }
   }, [isAuthenticated, isLoading, navigate, from]);
 
@@ -69,8 +71,8 @@ const Login = () => {
       });
       console.log("Login successful, redirecting to:", from);
       
-      // Navigate forcefully and directly to the home page
-      navigate("/", { replace: true });
+      // Use window.location to force a full page reload and navigation
+      window.location.href = "/";
     } catch (error: any) {
       const errorMessage = error?.message || "Please check your credentials and try again.";
       toast({
