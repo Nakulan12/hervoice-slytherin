@@ -24,8 +24,8 @@ const Login = () => {
     console.log("Login page - Auth state:", { isAuthenticated, isLoading, redirectTarget: from });
     if (isAuthenticated && !isLoading) {
       console.log("User is authenticated, redirecting to:", from);
-      // Use navigate with replace for React Router based navigation
-      navigate("/", { replace: true });
+      // Use direct window location change to break out of any React Router issues
+      window.location.href = "/";
     }
   }, [isAuthenticated, isLoading, navigate, from]);
 
@@ -69,10 +69,10 @@ const Login = () => {
         title: "Login successful",
         description: "Welcome back to HerVoice!",
       });
-      console.log("Login successful, redirecting to:", from);
+      console.log("Login successful, redirecting to home page");
       
-      // Navigate to home page using React Router
-      navigate("/", { replace: true });
+      // Force a complete page reload to reset all React Router state
+      window.location.href = "/";
     } catch (error: any) {
       const errorMessage = error?.message || "Please check your credentials and try again.";
       toast({

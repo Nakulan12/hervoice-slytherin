@@ -1,5 +1,5 @@
 
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useUser } from "@/context/UserContext";
 import { useEffect, useState } from "react";
 
@@ -26,14 +26,16 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     }
   }, [isLoading]);
 
-  // This effect handles the actual navigation after authentication state is determined
+  // This handles the actual navigation when authentication state changes
   useEffect(() => {
-    if (!isLoading && !isAuthenticated && initialCheckDone) {
-      console.log("Not authenticated (in effect), redirecting to login from:", location.pathname);
-      navigate("/login", { state: { from: location }, replace: true });
+    if (initialCheckDone && !isLoading && !isAuthenticated) {
+      console.log("Not authenticated, redirecting to login from:", location.pathname);
+      // Use direct window location to break out of any React Router issues
+      window.location.href = "/login";
     }
-  }, [isAuthenticated, isLoading, initialCheckDone, location, navigate]);
+  }, [isAuthenticated, isLoading, initialCheckDone, location]);
 
+  // Additional debugging logs
   useEffect(() => {
     console.log("ProtectedRoute - Auth state:", { 
       isAuthenticated, 
@@ -53,10 +55,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  // If not authenticated, don't render children
+  // If authentication check is done and user is not authenticated, don't render children
   if (!isAuthenticated && initialCheckDone) {
-    console.log("Not authenticated, not rendering children for:", location.pathname);
-    return null; // Don't render anything, the effect will handle the redirect
+    console.log("Not authenticated, not rendering protected content");
+    return null; // The effect above will handle the redirect
   }
 
   // User is authenticated, render the protected content
