@@ -60,3 +60,9 @@ This project utilizes:
 - **shadcn-ui** – Pre-styled UI components
 - **Tailwind CSS** – Utility-first CSS framework
 
+  <a href="https://github.com/hervoice-slytherin/undefined/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=hervoice-slytherin/undefined" />
+</a>
+
+Made with [contrib.rocks](https://contrib.rocks).
+
