@@ -60,16 +60,3 @@ This project utilizes:
 - **shadcn-ui** – Pre-styled UI components
 - **Tailwind CSS** – Utility-first CSS framework
 
-## 🌍 Deployment
-To deploy this project:
-
-1. Open the project dashboard.
-2. Navigate to Share > Publish to deploy the latest version.
-
-## 🌐 Connecting a Custom Domain
-You can link a custom domain by:
-
-1. Navigating to Settings > Domains in the project dashboard.
-2. Clicking Connect Domain and following the setup instructions.
-
-For more details, refer to the [official documentation](https://docs.lovable.dev/).
