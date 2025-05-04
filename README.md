@@ -1,27 +1,81 @@
+# 💬 HerVoice Platform – Empowering marginalized Women
 
-# HerFuture Empower Platform
+HerVoice is a platform designed to promote **digital literacy**, **income generation**, and **skill-building** among rural women. It provides offline-accessible educational content, an AI-powered voice assistant, and pathways to connect with economic opportunities in a secure environment.
 
-## 🚀 Project Overview
-HerFuture Empower is a digital platform dedicated to women's education and empowerment. The platform offers courses, resources, and community support to help women develop essential skills, build confidence, and achieve their personal and professional goals.
+---
 
-## 📌 Project Information
-🔗 Live URL: [herfuture-empower.lovable.app](https://herfuture-empower.lovable.app)
+## 🧰 Tech Stack
 
-## 💡 Key Features
-- **Personalized Learning Paths**: Customized educational journeys based on individual goals and needs
-- **Interactive Courses**: Engaging content with quizzes, practical exercises, and progress tracking
-- **Supportive Community**: Connect with peers and mentors for guidance and encouragement
-- **Resource Library**: Access to articles, videos, and tools for continuous learning
-- **Mobile Accessibility**: Learn on-the-go with a responsive, mobile-friendly interface
+| Frontend        | Backend       | Styling         | Deployment   | Tools & Config   |
+|----------------|---------------|-----------------|--------------|------------------|
+| ![Vite](https://img.shields.io/badge/Vite-563D7C?style=flat-square&logo=vite&logoColor=white) | ![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat-square&logo=node.js&logoColor=white) | ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-06B6D4?style=flat-square&logo=tailwind-css&logoColor=white) | ![Netlify](https://img.shields.io/badge/Netlify-00C7B7?style=flat-square&logo=netlify&logoColor=white) | TypeScript, ESLint, PostCSS, GitHub Actions |
 
+---
 
-## 🛠️ Technologies Used
-This project utilizes:
+## ✨ Features
 
-- **Vite** – Fast development server & build tool
-- **TypeScript** – Type-safe JavaScript
-- **React** – Component-based UI framework
-- **shadcn-ui** – Pre-styled UI components
-- **Tailwind CSS** – Utility-first CSS framework
+- 🎙️ **Voice Assistant** – Supports multilingual interaction for ease of access.
+- 📦 **Offline Content** – Empowers women with digital resources even in low-connectivity zones.
+- 🛍️ **Marketplace Module** – Facilitates digital entrepreneurship through local product listings.
+- 🔐 **Secure Access** – Role-based login and data protection.
 
- 
+---
+
+## 🚀 Getting Started
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/YOUR_USERNAME/hervoice-slytherin.git
+cd hervoice-slytherin
+```
+
+### 2. Install Dependencies
+
+```bash
+npm install
+```
+
+### 3. Run the Application
+
+```bash
+npm run dev
+```
+
+Visit `http://localhost:5173` to see the app running.
+
+---
+
+## 📁 Folder Structure
+
+```
+hervoice-slytherin-main/
+├── public/              # Static assets
+├── src/                 # Source files
+│   ├── assets/          # Media and icons
+│   ├── components/      # UI components
+│   ├── pages/           # Main pages
+│   ├── services/        # API & voice logic
+├── package.json         # Project metadata
+├── tailwind.config.ts   # Tailwind CSS config
+├── vite.config.ts       # Vite bundler config
+```
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions from developers, educators, and social workers. Please check the [CONTRIBUTING.md](CONTRIBUTING.md) file before submitting a PR.
+
+---
+
+## 🛡️ License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+
+## 🙏 Acknowledgements
+
+This project was built during the **Inter Department Hackathon* with a mission to empower marginalized women using technology. 
+
