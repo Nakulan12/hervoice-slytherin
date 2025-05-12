@@ -17,7 +17,7 @@ HerVoice is a platform designed to promote **digital literacy**, **income genera
 - 🎙️ **Voice Assistant** – Supports multilingual interaction for ease of access.
 - 📦 **Offline Content** – Empowers women with digital resources even in low-connectivity zones.
 - 🛍️ **Marketplace Module** – Facilitates digital entrepreneurship through local product listings.
-- 🔐 **Secure Access** – Role-based login and data protection.
+- 🔐 **Secure Access** – Role-based login and data protection
 
 ---
 
