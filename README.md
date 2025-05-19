@@ -71,7 +71,7 @@ We welcome contributions from developers, educators, and social workers. Please 
 
 ## 🛡️ License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the MIT License. See `LICENSE` for more information
 
 ---
 
