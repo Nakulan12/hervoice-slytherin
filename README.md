@@ -65,7 +65,7 @@ hervoice-slytherin-main/
 
 ## 🤝 Contributing
 
-We welcome contributions from developers, educators, and social workers. Please check the [CONTRIBUTING.md](CONTRIBUTING.md) file before submitting a PR.
+We welcome contributions from developers, educators, and social workers. Please check the [CONTRIBUTING.md](CONTRIBUTING.md) file before submitting a PR
 
 ---
 
