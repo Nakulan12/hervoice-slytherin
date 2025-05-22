@@ -1,6 +1,6 @@
 # 💬 HerVoice Platform – Empowering marginalized Women
 
-HerVoice is a platform designed to promote **digital literacy**, **income generation**, and **skill-building** among rural women. It provides offline-accessible educational content,an AI-powered voice assistant,and pathways to connect with economic opportunities in a secure environment.
+HerVoice is a platform designed to promote **digital literacy**, **income generation**, and **skill-building** among rural women. It provides offline-accessible educational content,an AI-powered voice assistant,and pathways to connect with economic opportunities in a secure environment
 
 ---
 
