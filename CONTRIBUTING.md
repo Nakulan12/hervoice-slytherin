@@ -4,7 +4,7 @@ Thank you for considering contributing to the **HerVoice Platform**! We're thril
 
 ---
 
-## 🧾 Table of Contents
+## 🧾 Table of Contents.
 
 - [Getting Started](#getting-started)
 - [How to Contribute](#how-to-contribute)
