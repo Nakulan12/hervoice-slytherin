@@ -6,10 +6,13 @@ HerVoice is a platform designed to promote **digital literacy**, **income genera
 
 ## 🧰 Tech Stack
 
-| Frontend        | Backend       | Styling         | Deployment   | Tools & Config   |
-|----------------|---------------|-----------------|--------------|------------------|
-| ![Vite](https://img.shields.io/badge/Vite-563D7C?style=flat-square&logo=vite&logoColor=white) | ![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat-square&logo=node.js&logoColor=white) | ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-06B6D4?style=flat-square&logo=tailwind-css&logoColor=white) | ![Netlify](https://img.shields.io/badge/Netlify-00C7B7?style=flat-square&logo=netlify&logoColor=white) | TypeScript, ESLint, PostCSS, GitHub Actions |
-
+| Layer       | Technology                                                                 |
+|-------------|------------------------------------------------------------------------------|
+| 🎨 Frontend | ![Vite](https://img.shields.io/badge/Vite-563D7C?style=flat&logo=vite&logoColor=white) ![React](https://img.shields.io/badge/React-20232a?style=flat&logo=react&logoColor=61dafb) ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white) |
+| 💄 Styling   | ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-06B6D4?style=flat&logo=tailwind-css&logoColor=white) |
+| 🧠 AI Logic  | JavaScript-based speech recognition API (planned integration with TensorFlow or Wit.ai) |
+| 🚀 DevOps    | ![Netlify](https://img.shields.io/badge/Netlify-00C7B7?style=flat&logo=netlify&logoColor=white) |
+| 🧰 Tooling   | ESLint, PostCSS, GitHub Actions, Vite Plugin ecosystem |
 ---
 
 ## ✨ Features
