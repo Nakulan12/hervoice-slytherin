@@ -38,17 +38,6 @@ This version—**Slytherin Edition**—is a special hackathon edition of the pro
   Custom learning paths suggested based on user performance and interests (planned).
 
 ---
-
-## 🛠️ Tech Stack
-
-| Layer        | Tech Used |
-|--------------|-----------|
-| **Frontend** | ![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black) ![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white) ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white) |
-| **Database** | ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white) |
-| **Offline**  | ![Workbox](https://img.shields.io/badge/Workbox-1C1E21?style=for-the-badge&logo=google&logoColor=white) |
-| **Deployment** | ![Netlify](https://img.shields.io/badge/Netlify-00C7B7?style=for-the-badge&logo=netlify&logoColor=white) ![Render](https://img.shields.io/badge/Render-764ABC?style=for-the-badge&logo=render&logoColor=white) |
-
----
 ## 🧑‍💻 Getting Started
 
 ```bash
